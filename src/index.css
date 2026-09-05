@@ -5,3 +5,17 @@ body,
 #root {
   height: 100%;
 }
+
+/*
+ * Números tabulares en toda cifra, sin excepción (docs/DISENIO.md §Tipografía).
+ * Las tablas lo traen del theme (`Table.tabularNums`); esto cubre lo que se
+ * escribe a mano: campos numéricos, fechas dentro de inputs y cualquier nodo
+ * que se marque con .tabular.
+ */
+.tabular,
+input[type='number'],
+input[type='date'],
+input[inputmode='numeric'],
+input[inputmode='decimal'] {
+  font-variant-numeric: tabular-nums;
+}

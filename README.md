@@ -1,7 +1,10 @@
 # Elysium
 
 Web app en Vite + React + TypeScript, con Mantine como librería de UI y React Router.
-Por ahora es solo el scaffold base: no hay features ni modelo de datos.
+El modelo de datos vive en Supabase (`supabase/migrations/`, documentado en
+`docs/MODELO.md`). El front tiene dos caras: la del usuario normal, mobile-first
+(`src/pages/`), y la de administración, de escritorio y densa
+(`src/features/`, `AdminLayout`), cuyo sistema de diseño está en `docs/DISENIO.md`.
 
 ## Requisitos
 
@@ -49,7 +52,10 @@ ignorado por git; `.env.example` es el que se versiona.
 ## Estructura
 
 ```
-docs/                     Documentación del proyecto (vacía por ahora)
+docs/
+  CONTEXT.md              El negocio: qué es Elysium y qué tiene que hacer la app
+  MODELO.md               El modelo de datos y por qué está así
+  DISENIO.md              El sistema de diseño del front de administración
 public/                   Assets estáticos servidos tal cual
 src/
   app/                    Composición de la app: providers, router, theme
@@ -57,8 +63,11 @@ src/
     router.tsx            Definición de rutas (createBrowserRouter)
     theme.ts              Theme de Mantine
   components/             UI compartida entre features
-    layout/AppLayout.tsx  Shell con header y <Outlet />
-  features/               Módulos de dominio (vacío: se llena cuando existan)
+    ui/                   El sistema de diseño: Tabla, Numero, Formulario, …
+    layout/AppLayout.tsx  Shell del usuario normal (mobile-first)
+    layout/AdminLayout.tsx Shell del admin: barra lateral con las ocho áreas
+  features/               Módulos de dominio
+    insumos/              Insumos, precios, proveedores y MP intermedias
   lib/                    Clientes, helpers y utilidades transversales
   pages/                  Componentes de pantalla asociados a una ruta
   main.tsx                Punto de entrada
@@ -71,6 +80,28 @@ página queda como el punto de entrada delgado de la ruta.
 
 Hay un alias `@/` que apunta a `src/` (configurado en `vite.config.ts` y
 `tsconfig.app.json`), así que los imports son `@/components/...` y no `../../`.
+
+## Base de datos
+
+Las migraciones están en `supabase/migrations/` y se aplican con:
+
+```bash
+npx supabase db push --linked
+```
+
+`supabase/seed.sql` tiene datos de prueba (el Shampoo Café real de `CONTEXT.md` §3.1 más
+artefactos sintéticos para los casos de borde) y **solo se aplica en local**, con
+`npx supabase db reset`. La base remota se deja vacía para que se carguen los datos reales.
+
+### El primer admin
+
+En una base nueva **no hay forma de crear el primer admin desde la app**: crear un perfil
+y crear una invitación requieren ya ser admin, y `es_admin()` lee una tabla vacía. Es
+intencional (§10 pide alta por invitación, no registro abierto), pero implica un paso
+manual de instalación, una única vez. El procedimiento completo, con la trampa de las
+columnas de token de GoTrue, está en `docs/MODELO.md`, sección "Arranque: el primer admin".
+
+Después de eso, el admin invita al resto desde la app.
 
 ## Deploy en Vercel
 

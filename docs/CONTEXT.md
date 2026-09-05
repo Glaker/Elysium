@@ -3,7 +3,11 @@
 > Documento de contexto para trabajar con Claude Code.
 > Reconstruido a partir de los dos Excel de producción (`Producción.xlsx`, `Productos_CIAB.xlsx`)
 > y de las notas de la reunión con Johanna.
-> **Última actualización:** [poner fecha]
+> **Última actualización:** 2026-09-05
+>
+> La implementación del modelo de datos vive en `docs/MODELO.md` y en
+> `supabase/migrations/`. Donde este documento y el esquema difieren, los bloques marcados
+> **CORREGIDO** / **RESUELTO** explican por qué.
 
 ---
 
@@ -14,6 +18,7 @@ bálsamos, cremas, repelentes, tónicos, etc.). No es una fábrica: es una opera
 donde una persona coordina todo y estudiantes de Ingeniería Química producen los lotes.
 
 **Johanna** es quien coordina. Ella:
+
 - compra la materia prima,
 - define las fórmulas y los tamaños de producto,
 - encarga lotes a los productores y les paga mano de obra,
@@ -27,22 +32,22 @@ hojas. El objetivo del proyecto es reemplazarlas por una web app.
 
 Usar estos términos en el código y en la UI. Son los que usa Johanna.
 
-| Término | Significado |
-|---|---|
-| **Insumo / Materia prima (MP)** | Lo que se compra: aceites, arcillas, tensioactivos, conservantes. También envases, etiquetas, cajas. |
-| **Producto** | Lo que se vende: "Shampoo Café", "Bálsamo", "Descongestivo". |
-| **Fórmula / Receta** | Composición porcentual de un producto. Ej: Shampoo Café = 30% SCI + 30% SCS + 10% betaína… |
-| **Tamaño** | Gramos o ml de una unidad del producto. El mismo producto puede tener varios. |
-| **Lote / Producción** | Una tanda concreta: producto + cantidad + quién la hizo + cuándo. |
-| **MP intermedia** | Un insumo que Elysium fabrica en vez de comprar (ver §4). |
-| **Regalías** | Cargo fijo por unidad producida ($1500) que se paga a un tercero. Es parte del costo. |
-| **Costo s/ etiqueta** | Lo que sale producir una unidad, sin la etiqueta. |
-| **Costo c/ etiqueta** | El anterior + el costo prorrateado de la etiqueta. Es el costo real y completo. Contra este se mide el margen. |
-| **Precio recomendado** | Calculado por el sistema: costo c/ etiqueta + margen. Sugerencia, no se edita. |
-| **Precio de venta** | El que fija Johanna, normalmente redondeando el recomendado. Es el que manda. Ver §7.1. |
-| **Marca blanca** | El producto sale **sin** marca Elysium. Misma fórmula, distinta presentación. |
-| **Cuenta** | A quién se le transfiere la plata de una venta (Silvia, Johanna, Martín, Luis). |
-| **Deudor** | Alguien que se llevó productos y todavía no pagó. |
+| Término                         | Significado                                                                                                    |
+| ------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| **Insumo / Materia prima (MP)** | Lo que se compra: aceites, arcillas, tensioactivos, conservantes. También envases, etiquetas, cajas.           |
+| **Producto**                    | Lo que se vende: "Shampoo Café", "Bálsamo", "Descongestivo".                                                   |
+| **Fórmula / Receta**            | Composición porcentual de un producto. Ej: Shampoo Café = 30% SCI + 30% SCS + 10% betaína…                     |
+| **Tamaño**                      | Gramos o ml de una unidad del producto. El mismo producto puede tener varios.                                  |
+| **Lote / Producción**           | Una tanda concreta: producto + cantidad + quién la hizo + cuándo.                                              |
+| **MP intermedia**               | Un insumo que Elysium fabrica en vez de comprar (ver §4).                                                      |
+| **Regalías**                    | Cargo fijo por unidad producida ($1500) que se paga a un tercero. Es parte del costo.                          |
+| **Costo s/ etiqueta**           | Lo que sale producir una unidad, sin la etiqueta.                                                              |
+| **Costo c/ etiqueta**           | El anterior + el costo prorrateado de la etiqueta. Es el costo real y completo. Contra este se mide el margen. |
+| **Precio recomendado**          | Calculado por el sistema: costo c/ etiqueta + margen. Sugerencia, no se edita.                                 |
+| **Precio de venta**             | El que fija Johanna, normalmente redondeando el recomendado. Es el que manda. Ver §7.1.                        |
+| **Marca blanca**                | El producto sale **sin** marca Elysium. Misma fórmula, distinta presentación.                                  |
+| **Cuenta**                      | A quién se le transfiere la plata de una venta (Silvia, Johanna, Martín, Luis).                                |
+| **Deudor**                      | Alguien que se llevó productos y todavía no pagó.                                                              |
 
 ---
 
@@ -70,19 +75,20 @@ estructura. Ejemplo real: **Shampoo Café**, tamaño 75 g, lote de 200 unidades.
 
 ### 3.1 Insumos de la fórmula
 
-| Insumo | % | Cant. uso (g) | Cant. lote | Precio/kg | Costo unit. |
-|---|---|---|---|---|---|
-| SCI | 30% | 22,5 | 4500 | $25.299 | $569,23 |
-| SCS | 30% | 22,5 | 4500 | $22.899 | $515,23 |
-| Betaína de coco | 10% | 7,5 | 1500 | $7.830 | $58,73 |
-| Cafeína anhidra | 1% | 0,75 | 150 | $99.700 | $74,78 |
-| Arcilla blanca | 10% | 7,5 | 1500 | $4.530 | $33,98 |
-| Café molido | 10% | 7,5 | 1500 | $26.235 | $196,76 |
-| Aceite almendras c/ cannabis | 5% | 3,75 | 750 | $72.212 | $270,80 |
-| Alcohol cetílico | 5% | 3,75 | 750 | $14.830 | $55,61 |
-| **Total insumos** | **101%** | **75,75** | **15150** | | **$1.775,10** |
+| Insumo                       | %        | Cant. uso (g) | Cant. lote | Precio/kg | Costo unit.   |
+| ---------------------------- | -------- | ------------- | ---------- | --------- | ------------- |
+| SCI                          | 30%      | 22,5          | 4500       | $25.299   | $569,23       |
+| SCS                          | 30%      | 22,5          | 4500       | $22.899   | $515,23       |
+| Betaína de coco              | 10%      | 7,5           | 1500       | $7.830    | $58,73        |
+| Cafeína anhidra              | 1%       | 0,75          | 150        | $99.700   | $74,78        |
+| Arcilla blanca               | 10%      | 7,5           | 1500       | $4.530    | $33,98        |
+| Café molido                  | 10%      | 7,5           | 1500       | $26.235   | $196,76       |
+| Aceite almendras c/ cannabis | 5%       | 3,75          | 750        | $72.212   | $270,80       |
+| Alcohol cetílico             | 5%       | 3,75          | 750        | $14.830   | $55,61        |
+| **Total insumos**            | **101%** | **75,75**     | **15150**  |           | **$1.775,10** |
 
 Fórmulas:
+
 - `cantidad_uso = porcentaje × tamaño`
 - `cantidad_lote = cantidad_uso × unidades_del_lote`
 - `precio` sale de la Lista de Precios con un `XLOOKUP` por nombre
@@ -93,14 +99,14 @@ Fórmulas:
 
 ### 3.2 Costos adicionales por unidad
 
-| Concepto | Valor | Cómo se calcula |
-|---|---|---|
-| Etiqueta | $100 | Precio unitario fijo |
-| Envase | $50 | Precio unitario fijo |
-| Hora de trabajo | $171,43 | $6.000/hora ÷ 35 unidades por hora |
-| Costo de energía | — | Columna existe, siempre vacía |
-| Regalías | $1.500 | Fijo por unidad |
-| **Total final** | **$3.596,53** | |
+| Concepto         | Valor         | Cómo se calcula                    |
+| ---------------- | ------------- | ---------------------------------- |
+| Etiqueta         | $100          | Precio unitario fijo               |
+| Envase           | $50           | Precio unitario fijo               |
+| Hora de trabajo  | $171,43       | $6.000/hora ÷ 35 unidades por hora |
+| Costo de energía | —             | Columna existe, siempre vacía      |
+| Regalías         | $1.500        | Fijo por unidad                    |
+| **Total final**  | **$3.596,53** |                                    |
 
 El **valor hora** está hardcodeado como `=960000/160` ($6.000/h) en casi todas las hojas,
 pero en otras (Caja combo, Muestras) es `=700000/160` ($4.375/h). Son sueldos mensuales
@@ -113,6 +119,10 @@ está anotada como texto suelto al costado de la hoja ("35 unid x hora").
 
 - **Merma de MP por lote.** Default **5%**, editable por lote. Es un valor aproximado que
   se repite pero puede cambiar. Hoy no está en ninguna fórmula del Excel.
+  > **IMPLEMENTADO como dos números distintos.** La merma _esperada_ (el parámetro) entra
+  > en el costo teórico que alimenta el precio recomendado; la merma _efectiva_ se declara
+  > al cerrar un lote y va contra el consumo real. Se aplica solo a materia prima. Por eso
+  > el total de §3.2 ($3.596,53) solo se reproduce pasando merma 0 explícitamente.
 - **Costo de energía.** La fila existe en todas las hojas, siempre vacía.
 - **Personas por lote.** Hoy la hora de trabajo es un número agregado. Johanna quiere
   registrar cuántas personas trabajaron, cuánto tiempo cada una y cuánto pagarle a cada una.
@@ -121,10 +131,10 @@ está anotada como texto suelto al costado de la hoja ("35 unid x hora").
 
 Un lote no siempre sale bien. Al cerrarlo, el productor elige un resultado:
 
-| Resultado | Qué pasa |
-|---|---|
-| **OK** | Entran las unidades producidas al stock. Caso normal. |
-| **Descarte** | Se pierde todo. Los insumos se consumieron, no entra producto. La pérdida queda registrada. |
+| Resultado     | Qué pasa                                                                                    |
+| ------------- | ------------------------------------------------------------------------------------------- |
+| **OK**        | Entran las unidades producidas al stock. Caso normal.                                       |
+| **Descarte**  | Se pierde todo. Los insumos se consumieron, no entra producto. La pérdida queda registrada. |
 | **Reproceso** | Se recupera, pero con una pérdida parcial. Se registra qué porcentaje o cantidad se perdió. |
 
 En los tres casos los insumos ya se consumieron y el costo ya se incurrió. La diferencia
@@ -169,6 +179,7 @@ Hoja `Lista de precios`, ~54 insumos. Campos:
 `NOMBRE | PRECIO EN U$D | PRECIO EN PESOS | UNIDAD (KG/L/UNIDAD) | PROVEEDOR | LINK DEL PROVEEDOR | ÚLTIMA VERIFICACIÓN`
 
 Detalles:
+
 - Algunos insumos se cotizan en dólares: el precio en pesos es `=USD × tipo_de_cambio`. El
   tipo de cambio vive en una celda única (`$1.530`) alimentada por una conexión externa a
   Google Sheets. **Esa conexión probablemente esté rota** — el archivo abre con advertencia
@@ -217,6 +228,10 @@ por producto y ubicación. No es una migración técnica, es una función del pr
 
 ### Qué debería hacer la app
 
+> **IMPLEMENTADO.** Los movimientos son inmutables en la base (`REVOKE UPDATE, DELETE` más
+> un trigger que aborta), no por convención. Ya no hace falta cargar salidas como entradas
+> negativas: los tipos de movimiento son reales y se usan.
+
 El stock como **suma de movimientos inmutables**, no como un número que se pisa. Cada
 movimiento con su tipo real (producción, venta, entrega, ajuste, merma, muestra). El
 precio de venta como entidad con historial propio, separado del stock.
@@ -250,8 +265,15 @@ Tres cosas distintas, y conviene no mezclarlas.
 la fórmula, el tamaño o el margen. Johanna no lo edita: es lo que el sistema sugiere.
 
 **2. Precio de venta** — el que Johanna pone. Típicamente el recomendado redondeado para
-arriba, pero puede ser cualquier cosa. Es el que manda para vender. Vive en los datos del
-producto, es por producto (no por tamaño ni por marca).
+arriba, pero puede ser cualquier cosa. Es el que manda para vender. Es **por tamaño y por
+variante**, con historial.
+
+> **CORREGIDO (implementación).** Este punto decía antes "por producto, no por tamaño ni
+> por marca". Era incompatible con §3: el costo se calcula por tamaño, y el precio
+> recomendado es `costo × (1 + margen)`, así que un shampoo de 75 g y uno de 150 g no
+> pueden compartir precio. El tamaño es la unidad que se stockea, se vende y tiene precio;
+> el producto es el agrupador de catálogo. Y la variante importa porque marca blanca no
+> lleva la etiqueta Elysium, que tiene costo propio (ver §4 de `MODELO.md`).
 
 Los dos conviven y se muestran juntos. Ver los dos al lado le permite saber cuánto se está
 desviando del cálculo, y detectar cuándo un aumento de insumos dejó su precio por debajo de
@@ -285,6 +307,7 @@ La hoja `Tráfico de dinero` es una conciliación semanal: para cada semana y ca
 cuánto entró a cada cuenta, con un estado `Hecho`.
 
 Requisitos derivados:
+
 - Saber a qué cuenta paga cada venta, y poder enviar/adjuntar comprobante.
 - Reporte de cuánto entró a cada cuenta, por período.
 - Los alias de transferencia están anotados sueltos en el Excel (`autino.jo`, `bnluisperego`,
@@ -312,6 +335,7 @@ Necesita: resumen de gastos por tipo y resumen por rango de fechas.
 Dos roles, según la nota textual "solo lo ve el admin (dos cuentas)":
 
 **Admin** (Johanna + una más). Ve todo, incluyendo:
+
 - costos de producción, mano de obra, márgenes
 - tiempo que lleva cada producto
 - deudores y flujo de dinero
@@ -319,7 +343,14 @@ Dos roles, según la nota textual "solo lo ve el admin (dos cuentas)":
 
 **Usuario normal.** Dos perfiles que comparten el mismo rol: los productores (estudiantes
 que hacen los lotes) y la gente que le pide productos de forma recurrente para revender.
-Puede:
+
+> **IMPLEMENTADO como atributos acumulables.** `personas.es_productor` y
+> `personas.es_revendedor` son booleanos independientes, porque la misma persona puede ser
+> las dos cosas: un estudiante que fabrica lotes y además se lleva producto para revender.
+> Modelarlo como un tipo único obligaba a duplicar esa persona y le partía la deuda en dos
+> fichas.
+> Puede:
+
 - solicitar materia prima
 - anotar el resultado de un lote que produjo
 - solicitar productos ya hechos para la venta
@@ -338,6 +369,7 @@ Se registran con **link de invitación** que genera Johanna, no con alta abierta
 Marcadas por prioridad sugerida. **Discutir con Johanna antes de cerrar el MVP.**
 
 ### Núcleo (MVP)
+
 - [ ] Catálogo de insumos con precio, unidad, proveedor, link, fecha de última verificación
 - [ ] Fórmulas por producto (composición porcentual) y tamaños
 - [ ] Registrar lote de producción → consume insumos, genera unidades, calcula costo
@@ -348,6 +380,7 @@ Marcadas por prioridad sugerida. **Discutir con Johanna antes de cerrar el MVP.*
 - [ ] Dos roles con permisos diferenciados
 
 ### Segunda ola
+
 - [ ] **Simulador de costos**: elegir fórmula y tamaño, ver el costo. Si un insumo no está
       cargado, pedir los datos ahí mismo **sin guardarlos**. (Textual de Johanna.)
 - [ ] **Calculadora de ingredientes**: para producir X unidades, cuánto de cada insumo hace
@@ -361,6 +394,7 @@ Marcadas por prioridad sugerida. **Discutir con Johanna antes de cerrar el MVP.*
 - [ ] Marca blanca vs. marca Elysium
 
 ### Tercera ola
+
 - [ ] Histórico de precios de insumos y productos, con gráficos
 - [ ] Combos / cajas (ver §12)
 - [ ] Conciliación de flujo de dinero por cuenta y período
@@ -372,7 +406,7 @@ Marcadas por prioridad sugerida. **Discutir con Johanna antes de cerrar el MVP.*
 
 - **Combos / cajas.** Hojas `Caja combo` y `Muestras`. Un combo agrupa varios productos
   terminados y suma etiqueta, caja, viruta de papel y regalías. Ej: "Café + Acondicionador
-  + tónico". Es un producto compuesto de productos.
+  - tónico". Es un producto compuesto de productos.
 - **Línea Aceites.** ~~Preguntar si entra en alcance.~~ **Fuera de alcance por ahora.**
   Hoja aparte con lotes `L1`/`L2`, aportes de ~20 personas y reparto de ganancias entre
   "Gero" y "CIAB". Es un negocio distinto que comparte planilla. Se revisa más adelante si
@@ -392,6 +426,7 @@ Marcadas por prioridad sugerida. **Discutir con Johanna antes de cerrar el MVP.*
 - **Deploy:** Vercel
 
 Decisiones que se derivan:
+
 - Auth de Supabase con invitación por link para usuarios normales
 - RLS para separar lo que ve cada rol — los costos y márgenes no deben salir del servidor
   para un usuario normal, no alcanza con esconderlos en el frontend
@@ -422,32 +457,61 @@ Decisiones que se derivan:
 
 ### Resueltas (ver secciones correspondientes)
 
-| # | Pregunta | Respuesta |
-|---|---|---|
-| 1 | Costo correcto de la Resina | No se migra. Queda vacío, lo carga Johanna. Regla general para todo valor no confiable. §4 |
-| 3 | Qué hacer con el stock que no cierra | No se reconstruye. Johanna carga el stock inicial desde la app. §6 |
-| 4 | ¿El 5% de merma es fijo? | Es un aproximado. Default 5%, editable por lote. §3.3 |
-| 5 | ¿Entra la línea Aceites? | Fuera de alcance por ahora. §12 |
-| 6 | ¿Qué productos ocultos siguen vigentes? | No importa: no se migran, los carga ella. §12 |
-| 7 | ¿Precios por producto o por variante? | Por producto. Marca blanca = sin marca Elysium, misma fórmula. §7.1 |
-| 8 | ¿Cómo se fija el precio? | Calculado (costo × margen) o fijo a mano. Los dos modos. §7.1 |
-| 9 | ¿Solicitar MP reserva stock? | No, es solo un aviso. §11 |
-| 10 | ¿Qué pasa con un lote que sale mal? | Tres resultados: OK, descarte, reproceso con pérdida parcial. §3.4 |
-| 11 | ¿Se migran datos históricos? | No es obligatorio. Se puede subir lo más consistente para ir probando el modelo. |
-| 12 | ¿Qué es "costo c/ etiqueta"? | Costo de producción + etiqueta prorrateada. **No es el precio de venta.** Son tres números distintos. §7.1 |
+| #   | Pregunta                                | Respuesta                                                                                                  |
+| --- | --------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| 1   | Costo correcto de la Resina             | No se migra. Queda vacío, lo carga Johanna. Regla general para todo valor no confiable. §4                 |
+| 3   | Qué hacer con el stock que no cierra    | No se reconstruye. Johanna carga el stock inicial desde la app. §6                                         |
+| 4   | ¿El 5% de merma es fijo?                | Es un aproximado. Default 5%, editable por lote. §3.3                                                      |
+| 5   | ¿Entra la línea Aceites?                | Fuera de alcance por ahora. §12                                                                            |
+| 6   | ¿Qué productos ocultos siguen vigentes? | No importa: no se migran, los carga ella. §12                                                              |
+| 7   | ¿Precios por producto o por variante?   | Por producto. Marca blanca = sin marca Elysium, misma fórmula. §7.1                                        |
+| 8   | ¿Cómo se fija el precio?                | Calculado (costo × margen) o fijo a mano. Los dos modos. §7.1                                              |
+| 9   | ¿Solicitar MP reserva stock?            | No, es solo un aviso. §11                                                                                  |
+| 10  | ¿Qué pasa con un lote que sale mal?     | Tres resultados: OK, descarte, reproceso con pérdida parcial. §3.4                                         |
+| 11  | ¿Se migran datos históricos?            | No es obligatorio. Se puede subir lo más consistente para ir probando el modelo.                           |
+| 12  | ¿Qué es "costo c/ etiqueta"?            | Costo de producción + etiqueta prorrateada. **No es el precio de venta.** Son tres números distintos. §7.1 |
 
 ### Todavía abiertas
 
-**Valor hora.** Aparece como `=960000/160` ($6.000/h) en las hojas de producto y
+Ordenadas por urgencia. Las tres primeras bloquean o distorsionan cálculos que ya están
+implementados.
+
+**1. ¿Cuál es el margen? — BLOQUEANTE.** §7.1 define el precio recomendado como
+`costo c/etiqueta × (1 + margen)`, pero en ningún lado del Excel ni de las notas figura
+cuánto es ese margen. El parámetro `margen_pct` está creado y **sin valor**, así que
+`precio_recomendado()` devuelve incompleto para todos los productos: la funcionalidad
+existe pero no puede dar un número. No se inventó un valor por defecto. Es la pregunta más
+urgente de esta lista, porque es la única que deja una feature entera sin funcionar.
+
+**2. ¿Las regalías se pagan por unidad fabricada o por unidad que entra al stock?**
+§1 dice "cargo fijo por unidad producida" ($1.500), y "producida" es ambiguo. Está
+implementado como **por unidad que entra al stock**: un lote descartado no paga regalías.
+Si el acuerdo con el tercero es por unidad fabricada, el costo de un descarte de 200
+unidades está subestimado en $300.000 — el 41% del costo del lote — y los descartes
+parecen mucho más baratos de lo que son. Ver la decisión y su consecuencia en
+`MODELO.md`, sección Producción.
+
+**3. Valor hora.** Aparece como `=960000/160` ($6.000/h) en las hojas de producto y
 `=700000/160` ($4.375/h) en Caja combo y Muestras. ¿Son dos tarifas distintas según la
-tarea, o quedó desactualizado en algunas hojas?
+tarea, o quedó desactualizado en algunas hojas? Hoy está implementado como un parámetro
+global único con historial, cargado en $6.000. Si son dos tarifas, hay que agregarle una
+dimensión.
 
-**Porcentajes que no suman 100.** Varias fórmulas suman 101% (Shampoo Café) o valores
-cercanos. ¿Es intencional o son errores de carga?
+**4. Porcentajes que no suman 100.** Varias fórmulas suman 101% (Shampoo Café) o valores
+cercanos. ¿Es intencional o son errores de carga? La app lo permite y lo marca
+(`v_formula_control`), como pide §3.1, pero conviene saber cuál es la respuesta.
 
-**Envases y etiquetas.** No están en la Lista de Precios: sus precios están hardcodeados en
-cada hoja de producto ($100 etiqueta, $50 envase en Shampoo Café; $78 y $1.153,90 en
-Bálsamos). ¿Se unifican en el catálogo de insumos?
+**5. Confirmar qué es "costo c/etiqueta".** La respuesta 12 de la tabla de arriba dice
+"costo de producción + etiqueta prorrateada", y así está implementado: el costo completo
+sin margen, contra el que se mide la rentabilidad. Como es el número que un revendedor
+paga (§2), vale confirmarlo con Johanna antes de que empiece a facturarse contra él.
+
+**Envases y etiquetas.** ~~No están en la Lista de Precios...~~ **RESUELTO: se unifican.**
+Entran al catálogo de `insumos` con `unidad = 'unidad'` y `tipo = 'envase'` / `'etiqueta'`,
+con proveedor, link e historial de precios como cualquier otro insumo. La fórmula los
+referencia con `modo = 'cantidad_fija'` (1 etiqueta, 1 envase), porque no son un porcentaje
+del contenido. Marcar el tipo `etiqueta` es además lo que permite calcular _costo
+s/etiqueta_ y _costo c/etiqueta_ como dos totales del mismo cálculo.
 
 ## 16. Fuentes
 
