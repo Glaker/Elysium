@@ -1862,6 +1862,7 @@ export type Database = {
     };
     Functions: {
       aceptar_invitacion: { Args: { p_token: string }; Returns: string };
+      anular_venta: { Args: { p_venta_id: string }; Returns: number };
       calcular_insumos: {
         Args: {
           p_merma_pct?: number;

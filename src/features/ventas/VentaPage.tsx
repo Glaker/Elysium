@@ -78,6 +78,7 @@ export function VentaPage() {
   const [anulando, setAnulando] = useState(false);
   const [borrando, setBorrando] = useState(false);
   const [ubicacionId, setUbicacionId] = useState<string | null>(null);
+  const [aviso, setAviso] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const venta = useAsync(() => obtenerVenta(id), [id]);
@@ -291,6 +292,19 @@ export function VentaPage() {
         ) : null
       }
     >
+      {aviso && (
+        <Alert
+          color="exito"
+          variant="light"
+          icon={<IconCheck size={16} />}
+          withCloseButton
+          onClose={() => setAviso(null)}
+          py={6}
+        >
+          {aviso}
+        </Alert>
+      )}
+
       {error && (
         <Alert color="error" variant="light" title="No se pudo completar">
           {error}
@@ -509,15 +523,26 @@ export function VentaPage() {
       <Modal opened={anulando} onClose={() => setAnulando(false)} title="Anular la venta">
         <Stack gap="md">
           <Text size="sm" c="dimmed">
-            La venta deja de contar para la deuda: el saldo desaparece.
+            Pasan las tres cosas juntas: vuelve la mercadería al stock, se liberan los
+            pagos que estaban aplicados a esta venta, y la venta deja de contar para la
+            deuda.
           </Text>
+
           <Alert color="advertencia" variant="light" py={8}>
-            <Text size="sm">La mercadería no vuelve sola al stock.</Text>
+            <Text size="sm">
+              {lineas.datos?.length
+                ? `Vuelven ${lineas.datos.reduce((n, l) => n + l.cantidad, 0)} unidades al stock.`
+                : 'Esta venta no tiene líneas.'}
+            </Text>
             <Text size="xs" c="dimmed" mt={2}>
-              Los movimientos que emitió la confirmación son inmutables. Si la mercadería
-              volvió de verdad, registrá la entrada desde stock.
+              No se borra nada: la salida original queda en el libro y se compensa con un
+              movimiento de vuelta.
+              {v &&
+                v.pagado > 0 &&
+                ` Los ${importe(v.pagado, 'ARS')} cobrados quedan a favor de la persona, para imputar a otra venta.`}
             </Text>
           </Alert>
+
           <Group justify="flex-end" gap="xs">
             <Button variant="subtle" color="gray" onClick={() => setAnulando(false)}>
               Cancelar
@@ -526,9 +551,15 @@ export function VentaPage() {
               color="error"
               onClick={() =>
                 void correr(async () => {
-                  await anularVenta(id);
+                  const liberado = await anularVenta(id);
                   setAnulando(false);
+                  setAviso(
+                    liberado > 0
+                      ? `Venta anulada. La mercadería volvió al stock y quedaron ${importe(liberado, 'ARS')} de pagos a favor de la persona.`
+                      : 'Venta anulada. La mercadería volvió al stock.',
+                  );
                   venta.recargar();
+                  lineas.recargar();
                 })
               }
             >

@@ -288,16 +288,18 @@ export async function confirmarVenta(id: string, ubicacionId?: string | null) {
 }
 
 /**
- * Anular saca la venta de la deuda, pero **no devuelve la mercadería al
- * stock**: los movimientos que emitió la confirmación son inmutables. Para que
- * el stock vuelva a cerrar hay que registrar la entrada a mano.
+ * Anular una venta confirmada. Las tres cosas pasan juntas o no pasa ninguna:
+ * vuelve la mercadería al stock con movimientos espejo, se liberan los pagos
+ * que estaban imputados a esta venta, y la venta deja de contar para la deuda.
+ *
+ * Los movimientos originales no se borran —son inmutables— sino que se
+ * compensan. Devuelve cuánto pago quedó liberado, que es plata que sigue
+ * estando y ahora se puede imputar a otra venta.
  */
-export async function anularVenta(id: string) {
-  const { error } = await supabase
-    .from('ventas')
-    .update({ estado: 'anulada' as EstadoVenta })
-    .eq('id', id);
+export async function anularVenta(id: string): Promise<number> {
+  const { data, error } = await supabase.rpc('anular_venta', { p_venta_id: id });
   if (error) throw new Error(error.message);
+  return Number(data ?? 0);
 }
 
 export type Imputacion = {
