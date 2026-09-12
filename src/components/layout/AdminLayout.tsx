@@ -27,22 +27,18 @@ import { NavLink as RouterLink, Outlet, useLocation } from 'react-router';
 
 import { useAuth } from '@/app/useAuth';
 
-type Area = { nombre: string; ruta: string; icono: Icon; lista: boolean };
+type Area = { nombre: string; ruta: string; icono: Icon };
 
-/**
- * Las ocho áreas del admin. Las que no están implementadas quedan visibles y
- * deshabilitadas: que se vea el mapa completo del sistema es información, no
- * ruido.
- */
+/** Las ocho áreas del admin, todas construidas. */
 const AREAS: Area[] = [
-  { nombre: 'Insumos', ruta: '/admin/insumos', icono: IconFlask, lista: true },
-  { nombre: 'Productos', ruta: '/admin/productos', icono: IconBoxSeam, lista: true },
-  { nombre: 'Lotes', ruta: '/admin/lotes', icono: IconBuildingFactory2, lista: true },
-  { nombre: 'Stock', ruta: '/admin/stock', icono: IconStack2, lista: true },
-  { nombre: 'Ventas', ruta: '/admin/ventas', icono: IconShoppingCart, lista: true },
-  { nombre: 'Deudores', ruta: '/admin/deudores', icono: IconUsersGroup, lista: true },
-  { nombre: 'Gastos', ruta: '/admin/gastos', icono: IconReceipt2, lista: false },
-  { nombre: 'Simulador', ruta: '/admin/simulador', icono: IconCalculator, lista: false },
+  { nombre: 'Insumos', ruta: '/admin/insumos', icono: IconFlask },
+  { nombre: 'Productos', ruta: '/admin/productos', icono: IconBoxSeam },
+  { nombre: 'Lotes', ruta: '/admin/lotes', icono: IconBuildingFactory2 },
+  { nombre: 'Stock', ruta: '/admin/stock', icono: IconStack2 },
+  { nombre: 'Ventas', ruta: '/admin/ventas', icono: IconShoppingCart },
+  { nombre: 'Deudores', ruta: '/admin/deudores', icono: IconUsersGroup },
+  { nombre: 'Gastos', ruta: '/admin/gastos', icono: IconReceipt2 },
+  { nombre: 'Simulador', ruta: '/admin/simulador', icono: IconCalculator },
 ];
 
 /**
@@ -115,18 +111,13 @@ export function AdminLayout() {
                 },
               } as const;
 
-              const item = a.lista ? (
+              const item = (
                 <NavLink key={a.ruta} component={RouterLink} to={a.ruta} {...comunes} />
-              ) : (
-                <NavLink key={a.ruta} component="button" disabled {...comunes} />
               );
 
-              return angosta || !a.lista ? (
-                <Tooltip
-                  key={a.ruta}
-                  label={a.lista ? a.nombre : `${a.nombre} — todavía sin construir`}
-                  position="right"
-                >
+              // Colapsada a íconos, el nombre solo existe en el tooltip.
+              return angosta ? (
+                <Tooltip key={a.ruta} label={a.nombre} position="right">
                   <Box>{item}</Box>
                 </Tooltip>
               ) : (

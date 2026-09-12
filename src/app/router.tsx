@@ -7,6 +7,7 @@ import { InsumoFormPage } from '@/features/insumos/InsumoFormPage';
 import { InsumoPage } from '@/features/insumos/InsumoPage';
 import { InsumosPage } from '@/features/insumos/InsumosPage';
 import { ProveedoresPage } from '@/features/insumos/ProveedoresPage';
+import { GastosPage } from '@/features/gastos/GastosPage';
 import { DeudorPage } from '@/features/deudores/DeudorPage';
 import { DeudoresPage } from '@/features/deudores/DeudoresPage';
 import { PersonasPage } from '@/features/deudores/PersonasPage';
@@ -18,6 +19,8 @@ import { ProductoFormPage } from '@/features/productos/ProductoFormPage';
 import { ProductoPage } from '@/features/productos/ProductoPage';
 import { ProductosPage as ProductosAdminPage } from '@/features/productos/ProductosPage';
 import { TamanoPage } from '@/features/productos/TamanoPage';
+import { CalculadoraPage } from '@/features/simulador/CalculadoraPage';
+import { SimuladorPage } from '@/features/simulador/SimuladorPage';
 import { MovimientosPage } from '@/features/stock/MovimientosPage';
 import { RecuentoPage } from '@/features/stock/RecuentoPage';
 import { RecuentosPage } from '@/features/stock/RecuentosPage';
@@ -90,6 +93,9 @@ export const router = createBrowserRouter([
           { path: 'deudores', element: <DeudoresPage /> },
           { path: 'deudores/personas', element: <PersonasPage /> },
           { path: 'deudores/:id', element: <DeudorPage /> },
+          { path: 'gastos', element: <GastosPage /> },
+          { path: 'simulador', element: <SimuladorPage /> },
+          { path: 'simulador/calculadora', element: <CalculadoraPage /> },
         ],
       },
     ],
