@@ -4,7 +4,7 @@
 > `src/app/theme.ts` y `src/components/ui/`.
 > El área de **insumos y precios** (`src/features/insumos/`) es la implementación
 > de referencia: si algo de acá no queda claro, mirá cómo se usa ahí.
-> **Última actualización:** 2026-09-05
+> **Última actualización:** 2026-09-11
 
 ---
 
@@ -81,9 +81,18 @@ parecen y significan cosas distintas.
 | Costo s/ y c/etiqueta    | Panel de detalle o popover. **Nunca al mismo nivel visual que los precios.**       |
 | Desvío venta/recomendado | Indicador chico al lado del recomendado. Es información, no alarma: no va en rojo. |
 
-Todavía no hay componente para esto porque el área de precios de producto no
-está construida. Cuando se construya, sale un `<ParPrecio>` de acá, y esta tabla
-es su especificación.
+Esa tabla es la especificación de `<ParPrecio>`, que es por donde pasan los dos
+precios:
+
+```tsx
+<ParPrecio venta={t.precio[variante]} recomendado={numeros.recomendado} />
+<ParPrecio tamano="destacado" venta={…} recomendado={…} />  // panel de una ficha
+```
+
+Los dos costos **no** entran ahí: van por `<CostoResumen>`
+(`features/productos/celdas.tsx`), que muestra el costo c/etiqueta en gris y
+chico, con el desglose completo de §3.1 + §3.2 en un popover. Esa diferencia de
+jerarquía es la regla: el número que se mira para decidir es el precio.
 
 ---
 
@@ -215,6 +224,12 @@ ruta más.
 `<Pagina>` es el encabezado común: título, descripción, link de vuelta y
 acciones a la derecha.
 
+Una excepción deliberada a la jerarquía de rutas: la ficha de un tamaño es
+`/admin/productos/tamanos/:id` y no `/admin/productos/:id/tamanos/:tid`. El
+tamaño es el SKU — MODELO §Productos — y se llega a él desde stock, lotes y
+ventas, no solo desde su producto; colgarlo del producto obligaría a conocer el
+padre para armar el link.
+
 ---
 
 ## 8. Modales
@@ -268,6 +283,7 @@ Dos reglas que salieron de construir insumos y valen para todas las áreas:
 | `Formulario`         | `components/ui/Formulario.tsx`      | Layout de formulario + barra de guardar + aviso al salir. |
 | `Formulario.Seccion` | `components/ui/Formulario.tsx`      | Agrupar campos con título.                                |
 | `CampoNumerico`      | `components/ui/CampoNumerico.tsx`   | Campo numérico con unidad adentro.                        |
+| `ParPrecio`          | `components/ui/ParPrecio.tsx`       | Precio de venta + recomendado + desvío (§3).              |
 | `Pagina`             | `components/ui/Pagina.tsx`          | Encabezado de pantalla.                                   |
 | `AdminLayout`        | `components/layout/AdminLayout.tsx` | Shell del admin: barra lateral + header.                  |
 | `useFormulario`      | `lib/useFormulario.ts`              | Estado de formulario con validación al salir del campo.   |
