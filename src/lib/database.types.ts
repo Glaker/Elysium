@@ -7,6 +7,31 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: '14.5';
   };
+  graphql_public: {
+    Tables: {
+      [_ in never]: never;
+    };
+    Views: {
+      [_ in never]: never;
+    };
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json;
+          operationName?: string;
+          query?: string;
+          variables?: Json;
+        };
+        Returns: Json;
+      };
+    };
+    Enums: {
+      [_ in never]: never;
+    };
+    CompositeTypes: {
+      [_ in never]: never;
+    };
+  };
   public: {
     Tables: {
       cuentas: {
@@ -1891,6 +1916,21 @@ export type Database = {
           isSetofReturn: false;
         };
       };
+      costo_insumo_simulado: {
+        Args: {
+          p_fecha?: string;
+          p_insumo_id: string;
+          p_path?: string[];
+          p_precios?: Json;
+        };
+        Returns: Database['public']['CompositeTypes']['resultado_costo'];
+        SetofOptions: {
+          from: '*';
+          to: 'resultado_costo';
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
       costo_tamano: {
         Args: {
           p_fecha?: string;
@@ -1919,6 +1959,18 @@ export type Database = {
         Returns: number;
       };
       imputar_pago_fifo: { Args: { p_pago_id: string }; Returns: number };
+      insumos_sin_precio_tamano: {
+        Args: {
+          p_fecha?: string;
+          p_tamano_id: string;
+          p_variante?: Database['public']['Enums']['variante_producto'];
+        };
+        Returns: {
+          insumo_id: string;
+          nombre: string;
+          unidad: Database['public']['Enums']['unidad_insumo'];
+        }[];
+      };
       lote_planificar: { Args: { p_lote_id: string }; Returns: undefined };
       mi_rol: { Args: never; Returns: string };
       parametro_valor: {
@@ -1950,6 +2002,29 @@ export type Database = {
           p_unidades_obtenidas: number;
         };
         Returns: undefined;
+      };
+      simular_costo_tamano: {
+        Args: {
+          p_fecha?: string;
+          p_merma_pct?: number;
+          p_precios?: Json;
+          p_tamano_id: string;
+          p_variante?: Database['public']['Enums']['variante_producto'];
+        };
+        Returns: {
+          completo: boolean;
+          costo_con_etiqueta: number;
+          costo_energia: number;
+          costo_envases: number;
+          costo_etiquetas: number;
+          costo_mano_obra: number;
+          costo_materias_primas: number;
+          costo_merma: number;
+          costo_otros: number;
+          costo_regalias: number;
+          costo_sin_etiqueta: number;
+          faltantes: string[];
+        }[];
       };
       ubicacion_default: { Args: never; Returns: string };
     };
@@ -2122,6 +2197,9 @@ export type CompositeTypes<
     : never;
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
       aplica_variante: ['ambas', 'solo_elysium', 'solo_marca_blanca'],

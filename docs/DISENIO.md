@@ -4,7 +4,7 @@
 > `src/app/theme.ts` y `src/components/ui/`.
 > El área de **insumos y precios** (`src/features/insumos/`) es la implementación
 > de referencia: si algo de acá no queda claro, mirá cómo se usa ahí.
-> **Última actualización:** 2026-09-11
+> **Última actualización:** 2026-09-12
 
 ---
 
@@ -212,9 +212,10 @@ del campo (`75 g`, `$ 25.299`), no como texto al lado.
 
 ## 7. Navegación
 
-Barra lateral fija con las ocho áreas. Colapsa a íconos abajo de 1080px. **Las
-siete no implementadas quedan visibles y deshabilitadas**: que se vea el mapa
-completo del sistema es información, no ruido.
+Barra lateral fija con las ocho áreas. Colapsa a íconos abajo de 1080px.
+
+Mientras hubo áreas sin construir quedaron visibles y deshabilitadas, para que
+se viera el mapa completo del sistema. Ya no hace falta: están las ocho.
 
 **Cada área es una ruta, y cada subsección también.** No hay tabs anidados en
 ningún lado: proveedores es `/admin/insumos/proveedores`, no una pestaña dentro

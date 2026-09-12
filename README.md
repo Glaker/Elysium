@@ -74,6 +74,8 @@ src/
     stock/                Movimientos, recuentos y ubicaciones
     ventas/               Ventas, líneas, confirmación y cuentas
     deudores/             Padrón de personas, deuda por persona y cobranza
+    gastos/               Registro de gastos con resumen por tipo y período
+    simulador/            Simulador de costos y calculadora de ingredientes
   lib/                    Clientes, helpers y utilidades transversales
     supabase.ts           El cliente; database.types.ts son los tipos generados
   pages/                  Componentes de pantalla asociados a una ruta
@@ -134,7 +136,7 @@ Settings → Environment Variables del proyecto en Vercel.
 
 ## Estado
 
-El admin tiene seis de sus ocho áreas construidas:
+El admin tiene sus ocho áreas construidas:
 
 - **Insumos** — catálogo, precios con historial, proveedores y MP intermedias.
 - **Productos** — productos, tamaños, fórmulas con las dos variantes de marca y
@@ -147,10 +149,11 @@ El admin tiene seis de sus ocho áreas construidas:
   líneas, confirmación que congela importes y descuenta stock, y cuentas.
 - **Deudores** — el padrón de personas, quién debe cuánto, y los pagos con
   imputación FIFO, corregible a mano.
-
-Las otras dos —gastos y simulador— tienen el modelo de datos completo en
-`supabase/migrations/` pero todavía no tienen pantalla: aparecen en la barra
-lateral, deshabilitadas.
+- **Gastos** — registro con resumen por tipo y por período. Si el gasto es la
+  compra de un insumo, entra al stock en el mismo acto sin pisar el precio de
+  lista.
+- **Simulador** — costo de un tamaño con precios hipotéticos que no se guardan,
+  y la calculadora de ingredientes contra el stock actual.
 
 El front del usuario normal muestra el catálogo con el precio que le corresponde
 a cada persona y el pedido de materia prima.
