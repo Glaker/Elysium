@@ -17,6 +17,7 @@ import {
   IconCalculator,
   IconFlask,
   IconLogout,
+  IconUser,
   IconReceipt2,
   IconShoppingCart,
   IconStack2,
@@ -76,6 +77,18 @@ export function AdminLayout() {
             <Text size="xs" c="dimmed">
               {perfil?.nombre}
             </Text>
+            <Tooltip label="Ver la app como usuario">
+              <ActionIcon
+                component={RouterLink}
+                to="/"
+                variant="subtle"
+                color="gray"
+                size="sm"
+                aria-label="Ver la app como usuario"
+              >
+                <IconUser size={16} />
+              </ActionIcon>
+            </Tooltip>
             <Tooltip label="Salir">
               <ActionIcon
                 variant="subtle"

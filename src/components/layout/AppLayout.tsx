@@ -7,7 +7,8 @@ import {
   Text,
   Tooltip,
 } from '@mantine/core';
-import { Outlet, useLocation, useNavigate } from 'react-router';
+import { IconLayoutGrid } from '@tabler/icons-react';
+import { Link, Outlet, useLocation, useNavigate } from 'react-router';
 
 import { useAuth } from '@/app/useAuth';
 import { BandaDeuda } from '@/components/BandaDeuda';
@@ -31,6 +32,25 @@ export function AppLayout() {
               ELYSIUM
             </Text>
             <Group gap="xs" wrap="nowrap">
+              {/*
+                Un admin entra por acá igual que cualquiera: esta es la pantalla
+                de su cuenta. Sin este atajo tendría que escribir /admin a mano
+                para llegar al panel, que es la clase de cosa que se sabe una vez
+                y se olvida. Para un usuario normal no existe.
+              */}
+              {perfil?.rol === 'admin' && (
+                <Tooltip label="Ir a administración">
+                  <ActionIcon
+                    component={Link}
+                    to="/admin"
+                    variant="light"
+                    color="violeta"
+                    aria-label="Ir a administración"
+                  >
+                    <IconLayoutGrid size={16} />
+                  </ActionIcon>
+                </Tooltip>
+              )}
               <Text size="xs" c="dimmed" visibleFrom="xs">
                 {perfil?.nombre}
               </Text>
