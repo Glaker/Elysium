@@ -15,7 +15,8 @@ import { CampoNumerico } from '@/components/ui/CampoNumerico';
 import { Formulario } from '@/components/ui/Formulario';
 import { Pagina } from '@/components/ui/Pagina';
 import { listarInsumos } from '@/features/insumos/api';
-import { crearLote, listarPersonas, type DestinoLote } from '@/features/lotes/api';
+import { listarPersonas } from '@/features/deudores/api';
+import { crearLote, type DestinoLote } from '@/features/lotes/api';
 import {
   etiquetaTamano,
   ETIQUETA_VARIANTE,

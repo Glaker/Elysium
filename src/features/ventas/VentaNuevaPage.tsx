@@ -12,7 +12,7 @@ import { useNavigate } from 'react-router';
 
 import { Formulario } from '@/components/ui/Formulario';
 import { Pagina } from '@/components/ui/Pagina';
-import { listarPersonas } from '@/features/lotes/api';
+import { listarPersonas } from '@/features/deudores/api';
 import { listarUbicaciones } from '@/features/stock/api';
 import {
   crearVenta,

@@ -2,11 +2,8 @@ import { Alert, Button, Group, Modal, Select, Stack, Textarea } from '@mantine/c
 import { useState } from 'react';
 
 import { CampoNumerico } from '@/components/ui/CampoNumerico';
-import {
-  guardarPersonaLote,
-  listarPersonas,
-  type PersonaDelLote,
-} from '@/features/lotes/api';
+import { listarPersonas } from '@/features/deudores/api';
+import { guardarPersonaLote, type PersonaDelLote } from '@/features/lotes/api';
 import { useAsync } from '@/lib/useAsync';
 import { useFormulario } from '@/lib/useFormulario';
 

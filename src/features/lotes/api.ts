@@ -384,25 +384,4 @@ export async function listarUbicaciones(): Promise<Ubicacion[]> {
   }));
 }
 
-export type Persona = {
-  id: string;
-  nombre: string;
-  esProductor: boolean;
-  activo: boolean;
-};
-
-export async function listarPersonas(): Promise<Persona[]> {
-  const { data, error } = await supabase
-    .from('personas')
-    .select('id, nombre, es_productor, activo')
-    .order('nombre');
-  if (error) throw new Error(error.message);
-  return data.map((p) => ({
-    id: p.id,
-    nombre: p.nombre,
-    esProductor: p.es_productor,
-    activo: p.activo,
-  }));
-}
-
 export type { Costo };

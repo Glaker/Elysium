@@ -7,6 +7,9 @@ import { InsumoFormPage } from '@/features/insumos/InsumoFormPage';
 import { InsumoPage } from '@/features/insumos/InsumoPage';
 import { InsumosPage } from '@/features/insumos/InsumosPage';
 import { ProveedoresPage } from '@/features/insumos/ProveedoresPage';
+import { DeudorPage } from '@/features/deudores/DeudorPage';
+import { DeudoresPage } from '@/features/deudores/DeudoresPage';
+import { PersonasPage } from '@/features/deudores/PersonasPage';
 import { LoteNuevoPage } from '@/features/lotes/LoteNuevoPage';
 import { LotePage } from '@/features/lotes/LotePage';
 import { LotesPage } from '@/features/lotes/LotesPage';
@@ -84,6 +87,9 @@ export const router = createBrowserRouter([
           { path: 'ventas/nueva', element: <VentaNuevaPage /> },
           { path: 'ventas/cuentas', element: <CuentasPage /> },
           { path: 'ventas/:id', element: <VentaPage /> },
+          { path: 'deudores', element: <DeudoresPage /> },
+          { path: 'deudores/personas', element: <PersonasPage /> },
+          { path: 'deudores/:id', element: <DeudorPage /> },
         ],
       },
     ],
