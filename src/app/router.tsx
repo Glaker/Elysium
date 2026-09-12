@@ -21,6 +21,10 @@ import { RecuentosPage } from '@/features/stock/RecuentosPage';
 import { StockInsumosPage } from '@/features/stock/StockInsumosPage';
 import { StockPage } from '@/features/stock/StockPage';
 import { UbicacionesPage } from '@/features/stock/UbicacionesPage';
+import { CuentasPage } from '@/features/ventas/CuentasPage';
+import { VentaNuevaPage } from '@/features/ventas/VentaNuevaPage';
+import { VentaPage } from '@/features/ventas/VentaPage';
+import { VentasPage } from '@/features/ventas/VentasPage';
 import { InvitacionPage } from '@/pages/InvitacionPage';
 import { LoginPage } from '@/pages/LoginPage';
 import { MateriaPrimaPage } from '@/pages/MateriaPrimaPage';
@@ -76,6 +80,10 @@ export const router = createBrowserRouter([
           { path: 'stock/ubicaciones', element: <UbicacionesPage /> },
           { path: 'stock/recuentos', element: <RecuentosPage /> },
           { path: 'stock/recuentos/:id', element: <RecuentoPage /> },
+          { path: 'ventas', element: <VentasPage /> },
+          { path: 'ventas/nueva', element: <VentaNuevaPage /> },
+          { path: 'ventas/cuentas', element: <CuentasPage /> },
+          { path: 'ventas/:id', element: <VentaPage /> },
         ],
       },
     ],

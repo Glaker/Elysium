@@ -39,7 +39,7 @@ const AREAS: Area[] = [
   { nombre: 'Productos', ruta: '/admin/productos', icono: IconBoxSeam, lista: true },
   { nombre: 'Lotes', ruta: '/admin/lotes', icono: IconBuildingFactory2, lista: true },
   { nombre: 'Stock', ruta: '/admin/stock', icono: IconStack2, lista: true },
-  { nombre: 'Ventas', ruta: '/admin/ventas', icono: IconShoppingCart, lista: false },
+  { nombre: 'Ventas', ruta: '/admin/ventas', icono: IconShoppingCart, lista: true },
   { nombre: 'Deudores', ruta: '/admin/deudores', icono: IconUsersGroup, lista: false },
   { nombre: 'Gastos', ruta: '/admin/gastos', icono: IconReceipt2, lista: false },
   { nombre: 'Simulador', ruta: '/admin/simulador', icono: IconCalculator, lista: false },

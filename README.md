@@ -72,6 +72,7 @@ src/
     productos/            Productos, tamaños, fórmulas y precios de venta
     lotes/                Producción: planificación, cierre y costo real
     stock/                Movimientos, recuentos y ubicaciones
+    ventas/               Ventas, líneas, confirmación y cuentas
   lib/                    Clientes, helpers y utilidades transversales
     supabase.ts           El cliente; database.types.ts son los tipos generados
   pages/                  Componentes de pantalla asociados a una ruta
@@ -132,7 +133,7 @@ Settings → Environment Variables del proyecto en Vercel.
 
 ## Estado
 
-El admin tiene tres de sus ocho áreas construidas:
+El admin tiene cinco de sus ocho áreas construidas:
 
 - **Insumos** — catálogo, precios con historial, proveedores y MP intermedias.
 - **Productos** — productos, tamaños, fórmulas con las dos variantes de marca y
@@ -141,10 +142,12 @@ El admin tiene tres de sus ocho áreas construidas:
   de costos y parámetros, y el costo unitario real de lo que efectivamente salió.
 - **Stock** — stock de productos por ubicación y de insumos, el libro de
   movimientos, traslados y recuentos físicos con ajuste por diferencia.
+- **Ventas** — los dos flujos (directa y entrega para reventa), borrador con
+  líneas, confirmación que congela importes y descuenta stock, y cuentas.
 
-Las otras cuatro —ventas, deudores, gastos y simulador— tienen el modelo de
-datos completo en `supabase/migrations/` pero todavía no tienen pantalla:
-aparecen en la barra lateral, deshabilitadas.
+Las otras tres —deudores, gastos y simulador— tienen el modelo de datos
+completo en `supabase/migrations/` pero todavía no tienen pantalla: aparecen en
+la barra lateral, deshabilitadas.
 
 El front del usuario normal muestra el catálogo con el precio que le corresponde
 a cada persona y el pedido de materia prima.
