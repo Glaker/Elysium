@@ -19,6 +19,7 @@ import {
   IconLogout,
   IconReceipt2,
   IconShoppingCart,
+  IconStack2,
   IconUsersGroup,
   type Icon,
 } from '@tabler/icons-react';
@@ -29,15 +30,15 @@ import { useAuth } from '@/app/useAuth';
 type Area = { nombre: string; ruta: string; icono: Icon; lista: boolean };
 
 /**
- * Las ocho áreas del admin. Las siete que no están implementadas quedan
- * visibles y deshabilitadas: que se vea el mapa completo del sistema es
- * información, no ruido.
+ * Las ocho áreas del admin. Las que no están implementadas quedan visibles y
+ * deshabilitadas: que se vea el mapa completo del sistema es información, no
+ * ruido.
  */
 const AREAS: Area[] = [
   { nombre: 'Insumos', ruta: '/admin/insumos', icono: IconFlask, lista: true },
-  { nombre: 'Productos', ruta: '/admin/productos', icono: IconBoxSeam, lista: false },
-  { nombre: 'Lotes', ruta: '/admin/lotes', icono: IconBuildingFactory2, lista: false },
-  { nombre: 'Stock', ruta: '/admin/stock', icono: IconBoxSeam, lista: false },
+  { nombre: 'Productos', ruta: '/admin/productos', icono: IconBoxSeam, lista: true },
+  { nombre: 'Lotes', ruta: '/admin/lotes', icono: IconBuildingFactory2, lista: true },
+  { nombre: 'Stock', ruta: '/admin/stock', icono: IconStack2, lista: true },
   { nombre: 'Ventas', ruta: '/admin/ventas', icono: IconShoppingCart, lista: false },
   { nombre: 'Deudores', ruta: '/admin/deudores', icono: IconUsersGroup, lista: false },
   { nombre: 'Gastos', ruta: '/admin/gastos', icono: IconReceipt2, lista: false },

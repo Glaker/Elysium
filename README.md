@@ -60,6 +60,7 @@ public/                   Assets estáticos servidos tal cual
 src/
   app/                    Composición de la app: providers, router, theme
     App.tsx               MantineProvider + RouterProvider
+    AuthProvider.tsx      Sesión de Supabase, perfil y rol
     router.tsx            Definición de rutas (createBrowserRouter)
     theme.ts              Theme de Mantine
   components/             UI compartida entre features
@@ -68,7 +69,11 @@ src/
     layout/AdminLayout.tsx Shell del admin: barra lateral con las ocho áreas
   features/               Módulos de dominio
     insumos/              Insumos, precios, proveedores y MP intermedias
+    productos/            Productos, tamaños, fórmulas y precios de venta
+    lotes/                Producción: planificación, cierre y costo real
+    stock/                Movimientos, recuentos y ubicaciones
   lib/                    Clientes, helpers y utilidades transversales
+    supabase.ts           El cliente; database.types.ts son los tipos generados
   pages/                  Componentes de pantalla asociados a una ruta
   main.tsx                Punto de entrada
   index.css               Estilos globales
@@ -88,6 +93,18 @@ Las migraciones están en `supabase/migrations/` y se aplican con:
 ```bash
 npx supabase db push --linked
 ```
+
+Para consultar o aplicar SQL sin la password de la base, `scripts/sql.sh` va por
+la Management API con el token de `.env` (`SUPABASE_ACCESS_TOKEN_GG2`):
+
+```bash
+./scripts/sql.sh "select count(*) from insumos;"
+./scripts/sql.sh -f supabase/migrations/20260911140000_lote_planificar_variante.sql
+```
+
+Ojo con una diferencia: `db push` registra lo aplicado en
+`supabase_migrations.schema_migrations` y el script no. Si aplicás una migración
+por ahí, insertá su `version` a mano o el CLI va a querer volver a aplicarla.
 
 `supabase/seed.sql` tiene datos de prueba (el Shampoo Café real de `CONTEXT.md` §3.1 más
 artefactos sintéticos para los casos de borde) y **solo se aplica en local**, con
@@ -113,8 +130,23 @@ Para deployar: importá el repo en Vercel (detecta la config sola) o corré
 `vercel` con la CLI. Si la app usa variables `VITE_*`, cargalas en
 Settings → Environment Variables del proyecto en Vercel.
 
-## Todavía no está conectado
+## Estado
 
-- Sin backend / Supabase: se conecta más adelante.
-- Sin capa de datos ni modelo de dominio.
-- Sin tests.
+El admin tiene tres de sus ocho áreas construidas:
+
+- **Insumos** — catálogo, precios con historial, proveedores y MP intermedias.
+- **Productos** — productos, tamaños, fórmulas con las dos variantes de marca y
+  precios de venta.
+- **Lotes** — planificación del consumo desde la fórmula, cierre con congelado
+  de costos y parámetros, y el costo unitario real de lo que efectivamente salió.
+- **Stock** — stock de productos por ubicación y de insumos, el libro de
+  movimientos, traslados y recuentos físicos con ajuste por diferencia.
+
+Las otras cuatro —ventas, deudores, gastos y simulador— tienen el modelo de
+datos completo en `supabase/migrations/` pero todavía no tienen pantalla:
+aparecen en la barra lateral, deshabilitadas.
+
+El front del usuario normal muestra el catálogo con el precio que le corresponde
+a cada persona y el pedido de materia prima.
+
+Todavía no hay tests.
