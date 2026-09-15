@@ -3,6 +3,7 @@ import {
   Anchor,
   Box,
   Button,
+  Collapse,
   Group,
   PasswordInput,
   Stack,
@@ -49,6 +50,7 @@ export function LoginPage() {
   const [telefono, setTelefono] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [password2, setPassword2] = useState('');
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [aviso, setAviso] = useState<string | null>(null);
@@ -68,6 +70,14 @@ export function LoginPage() {
     if (modo === 'entrar') {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) setError(error.message);
+      setEnviando(false);
+      return;
+    }
+
+    // Las dos contraseñas se comparan acá y no solo mirando el campo: el aviso
+    // de abajo es una ayuda mientras se escribe, esto es lo que frena el alta.
+    if (password !== password2) {
+      setError('Las contraseñas no coinciden.');
       setEnviando(false);
       return;
     }
@@ -97,6 +107,9 @@ export function LoginPage() {
   }
 
   const creando = modo === 'crear';
+  // Recién cuando la segunda ya tiene algo escrito: avisar antes sería regañar
+  // a alguien por no haber terminado de tipear.
+  const desparejas = creando && password2.length > 0 && password2 !== password;
 
   return (
     <Box
@@ -112,16 +125,43 @@ export function LoginPage() {
         justifyContent: 'center',
       }}
     >
-      <Box className="halo" top={120} left="50%" w={460} h={460} ml={-230} />
+      {/*
+        El único halo de la pantalla. Va colgado del centro del viewport —no de
+        su borde de arriba— porque el contenido está centrado: así la luz cae
+        sobre la marca en cualquier alto de ventana, y no queda flotando arriba
+        del formulario en las pantallas altas.
+      */}
+      <Box
+        className="halo halo-inicio"
+        top="50%"
+        mt={-580}
+        left="50%"
+        ml={-430}
+        w={860}
+        h={860}
+      />
 
-      <Stack gap={30} w="100%" maw={360} style={{ position: 'relative' }}>
-        <Stack gap={16}>
-          <Logo size={42} />
-          <Box>
-            <Text className="display" fz={38} fw={800} lh={1.05}>
+      <Stack
+        className="entrada-inicio"
+        gap={34}
+        w="100%"
+        maw={380}
+        style={{ position: 'relative' }}
+      >
+        <Stack gap={18} align="center">
+          <Logo size={62} />
+          <Box ta="center">
+            <Text className="display" fz={52} fw={800} lh={1.02}>
               Elysium
             </Text>
-            <Text fz={15} c="var(--ely-texto-2)" mt={7} lh={1.45}>
+            <Text
+              key={modo}
+              className="cambio-de-modo"
+              fz={15}
+              c="var(--ely-texto-2)"
+              mt={10}
+              lh={1.5}
+            >
               {creando
                 ? 'Creá tu cuenta para ver tus precios y lo que debés.'
                 : 'Entrá con tu cuenta para ver tus precios y lo que debés.'}
@@ -131,8 +171,8 @@ export function LoginPage() {
 
         <form onSubmit={enviar}>
           <Stack gap={12}>
-            {creando && (
-              <>
+            <Collapse expanded={creando} keepMounted={false} transitionDuration={260}>
+              <Stack gap={12}>
                 <Group gap={10} grow wrap="nowrap">
                   <Box>
                     <Text className="rotulo" mb={7}>
@@ -180,8 +220,8 @@ export function LoginPage() {
                     styles={{ input: CAMPO }}
                   />
                 </Box>
-              </>
-            )}
+              </Stack>
+            </Collapse>
 
             <Box>
               <Text className="rotulo" mb={7}>
@@ -215,6 +255,24 @@ export function LoginPage() {
               />
             </Box>
 
+            <Collapse expanded={creando} keepMounted={false} transitionDuration={260}>
+              <Box>
+                <Text className="rotulo" mb={7}>
+                  Repetir contraseña
+                </Text>
+                <PasswordInput
+                  value={password2}
+                  onChange={(e) => setPassword2(e.currentTarget.value)}
+                  required
+                  autoComplete="new-password"
+                  size="md"
+                  aria-label="Repetir contraseña"
+                  error={desparejas ? 'No coincide con la de arriba' : undefined}
+                  styles={{ input: CAMPO }}
+                />
+              </Box>
+            </Collapse>
+
             {aviso && (
               <Alert color="exito" variant="light">
                 {aviso}
@@ -234,13 +292,23 @@ export function LoginPage() {
               radius={12}
               mt={4}
               loading={enviando}
+              disabled={desparejas}
             >
-              {creando ? 'Crear mi cuenta' : 'Entrar'}
+              <span key={modo} className="cambio-de-modo">
+                {creando ? 'Crear mi cuenta' : 'Entrar'}
+              </span>
             </Button>
           </Stack>
         </form>
 
-        <Text fz={13} c="var(--ely-texto-2)" ta="center" lh={1.55}>
+        <Text
+          key={modo}
+          className="cambio-de-modo"
+          fz={13}
+          c="var(--ely-texto-2)"
+          ta="center"
+          lh={1.55}
+        >
           {creando ? '¿Ya tenés cuenta? ' : '¿Todavía no tenés cuenta? '}
           <Anchor
             component="button"
@@ -249,6 +317,7 @@ export function LoginPage() {
             c="cian.4"
             onClick={() => {
               setModo(creando ? 'entrar' : 'crear');
+              setPassword2('');
               setError(null);
               setAviso(null);
             }}

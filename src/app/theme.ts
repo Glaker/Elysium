@@ -124,6 +124,13 @@ export const theme = createTheme({
   primaryShade: { light: 6, dark: 4 },
 
   /**
+   * Quien pidió menos movimiento en su sistema no ve ninguno: las transiciones
+   * de Mantine —el Collapse del formulario de inicio, entre otras— pasan a durar
+   * cero, igual que las animaciones nuestras de `index.css`.
+   */
+  respectReducedMotion: true,
+
+  /**
    * Texto oscuro sobre los rellenos claros.
    *
    * El cian de acción es un color claro: blanco encima daba 1,9:1 —ilegible por

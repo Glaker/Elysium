@@ -46,6 +46,8 @@ export type Solicitud = {
   unidadesObjetivo: number | null;
   notas: string | null;
   resueltaEn: string | null;
+  /** Solo en materia prima: el lote que se abrió con este pedido, si ya se abrió. */
+  loteId: string | null;
   lineas: LineaSolicitud[];
 };
 
@@ -66,7 +68,7 @@ export async function listarSolicitudes(): Promise<Solicitud[]> {
     supabase
       .from('solicitudes')
       .select(
-        'id, tipo, estado, fecha, persona_id, unidades_objetivo, tamano_objetivo_id, notas, resuelta_en, personas (nombre_completo, es_revendedor), tamanos (nombre, magnitud, unidad, productos (nombre))',
+        'id, tipo, estado, fecha, persona_id, unidades_objetivo, tamano_objetivo_id, notas, resuelta_en, lote_id, personas (nombre_completo, es_revendedor), tamanos (nombre, magnitud, unidad, productos (nombre))',
       )
       .order('fecha', { ascending: false })
       .order('creado_en', { ascending: false }),
@@ -90,6 +92,7 @@ export async function listarSolicitudes(): Promise<Solicitud[]> {
     tamano_objetivo_id: string | null;
     notas: string | null;
     resuelta_en: string | null;
+    lote_id: string | null;
     personas: { nombre_completo: string | null; es_revendedor: boolean } | null;
     tamanos: FilaTamano;
   }[];
@@ -130,6 +133,7 @@ export async function listarSolicitudes(): Promise<Solicitud[]> {
     unidadesObjetivo: f.unidades_objetivo == null ? null : Number(f.unidades_objetivo),
     notas: f.notas,
     resueltaEn: f.resuelta_en,
+    loteId: f.lote_id,
     lineas: (porSolicitud.get(f.id) ?? []).sort((a, b) =>
       a.descripcion.localeCompare(b.descripcion, 'es'),
     ),
@@ -161,6 +165,22 @@ export async function resolverSolicitud(id: string, estado: EstadoSolicitud) {
  * eso se decide mirando la venta, no el pedido. Las tres escrituras (venta,
  * líneas, estado del pedido) pasan juntas del lado de la base.
  */
+/**
+ * Abrir el lote de un pedido de materia prima.
+ *
+ * El equivalente de `aprobarComoVenta` para el otro tipo de pedido: en vez de
+ * una venta en borrador, deja un lote abierto con la persona que pidió como
+ * responsable y los insumos ya planificados desde la fórmula. Es lo que después
+ * le permite a ella cargar el resultado, que sin lote no tendría dónde entrar.
+ */
+export async function abrirLoteDelPedido(id: string): Promise<string> {
+  const { data, error } = await supabase.rpc('lote_desde_solicitud', {
+    p_solicitud_id: id,
+  });
+  if (error) throw new Error(error.message);
+  return data as string;
+}
+
 export async function aprobarComoVenta(id: string, tipo: TipoVenta): Promise<string> {
   const { data, error } = await supabase.rpc('aprobar_solicitud_como_venta', {
     p_solicitud_id: id,

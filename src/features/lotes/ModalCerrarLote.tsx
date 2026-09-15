@@ -10,7 +10,7 @@ import {
   type Lote,
   type ResultadoLote,
 } from '@/features/lotes/api';
-import { cantidad } from '@/lib/formato';
+import { cantidad, fecha } from '@/lib/formato';
 import { useAsync } from '@/lib/useAsync';
 import { useFormulario } from '@/lib/useFormulario';
 
@@ -43,12 +43,15 @@ export function ModalCerrarLote({
   const [error, setError] = useState<string | null>(null);
   const ubicaciones = useAsync(listarUbicaciones, []);
 
+  // Arranca con lo que reportó la responsable, si reportó (§17): ella estuvo en
+  // la mesa de trabajo y ya escribió estos números una vez. Cerrar es revisarlos
+  // y congelar el costo, no volver a cargarlos de memoria.
   const f = useFormulario<Valores>(
     {
-      resultado: 'ok',
-      obtenidas: lote.planificadas,
+      resultado: lote.resultado ?? 'ok',
+      obtenidas: lote.obtenidas ?? lote.planificadas,
       merma: '',
-      perdida: '',
+      perdida: lote.perdida ?? '',
       ubicacionId: null,
     },
     (v) => ({
@@ -92,6 +95,15 @@ export function ModalCerrarLote({
   return (
     <Modal opened onClose={onClose} title={`Cerrar ${lote.codigo ?? 'el lote'}`}>
       <Stack gap="sm">
+        {lote.reportadoEn && (
+          <Alert color="cian" variant="light" py={8}>
+            <Text size="xs">
+              Los números vienen de lo que cargó {lote.responsable ?? 'la responsable'} el{' '}
+              {fecha(lote.reportadoEn)}. Corregilos si hace falta: lo que se congela es
+              esto.
+            </Text>
+          </Alert>
+        )}
         <Select
           label="Cómo salió"
           data={Object.entries(ETIQUETA_RESULTADO).map(([value, label]) => ({

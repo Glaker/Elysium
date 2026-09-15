@@ -48,7 +48,7 @@ export function InicioPage() {
       rotulo: 'Pedidos sin responder',
       valor: datos?.pendientes ?? 0,
       pie: 'Lo que la gente pidió desde su cuenta',
-      a: '/admin/ventas/solicitudes',
+      a: '/admin/stock/pedidos',
       color: (datos?.pendientes ?? 0) > 0 ? 'advertencia.4' : undefined,
     },
     {

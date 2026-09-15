@@ -1,5 +1,4 @@
 import {
-  ActionIcon,
   AppShell,
   Box,
   Container,
@@ -12,13 +11,15 @@ import {
 } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
 import {
+  IconArrowsLeftRight,
   IconBoxSeam,
+  IconBuildingFactory2,
   IconFlask,
   IconHome,
-  IconLayoutGrid,
-  IconPower,
+  IconUser,
   type Icon,
 } from '@tabler/icons-react';
+import { useState } from 'react';
 import { Link, Link as RouterLink, Outlet, useLocation, useNavigate } from 'react-router';
 
 import { useAuth } from '@/app/useAuth';
@@ -26,6 +27,7 @@ import { BandaDeuda } from '@/components/BandaDeuda';
 import { cargarDeuda } from '@/components/deuda';
 import { Logo } from '@/components/Logo';
 import { PantallaCarga } from '@/components/PantallaCarga';
+import { ModalCuenta } from '@/features/cuenta/ModalCuenta';
 import { useAsync } from '@/lib/useAsync';
 
 type Seccion = { valor: string; texto: string; icono: Icon };
@@ -40,6 +42,11 @@ const MATERIA_PRIMA: Seccion = {
   valor: '/materia-prima',
   texto: 'Materia prima',
   icono: IconFlask,
+};
+const PRODUCCION: Seccion = {
+  valor: '/produccion',
+  texto: 'Producción',
+  icono: IconBuildingFactory2,
 };
 
 /**
@@ -58,7 +65,8 @@ const MATERIA_PRIMA: Seccion = {
  * admin cuelga de otro shell y no la toca.
  */
 export function AppLayout() {
-  const { perfil, persona, salir } = useAuth();
+  const { perfil, persona } = useAuth();
+  const [cuenta, setCuenta] = useState(false);
   const navigate = useNavigate();
   const { pathname } = useLocation();
 
@@ -74,20 +82,24 @@ export function AppLayout() {
   const deuda = useAsync(() => cargarDeuda(persona?.id), [persona?.id]);
   const seccion = pathname.startsWith('/materia-prima')
     ? '/materia-prima'
-    : pathname.startsWith('/productos')
-      ? '/productos'
-      : '/';
+    : pathname.startsWith('/produccion')
+      ? '/produccion'
+      : pathname.startsWith('/productos')
+        ? '/productos'
+        : '/';
 
   // Quien no fabrica lotes no tiene por qué ver la receta (§10): sin la pestaña,
   // materia prima no existe para esa cuenta. La puerta que cuenta está en la
   // base — acá solo se evita ofrecer algo que va a ser rechazado.
   const catalogo =
     perfil?.rol === 'admin' || persona?.esProductor
-      ? [PRODUCTOS, MATERIA_PRIMA]
+      ? [PRODUCTOS, MATERIA_PRIMA, PRODUCCION]
       : [PRODUCTOS];
   const secciones = [INICIO, ...catalogo];
 
   if (deuda.cargando) return <PantallaCarga />;
+
+  const modalCuenta = cuenta && <ModalCuenta onClose={() => setCuenta(false)} />;
 
   const marca = (
     <Group gap={10} wrap="nowrap">
@@ -99,39 +111,44 @@ export function AppLayout() {
   );
 
   const acciones = (
-    <Group gap="sm" wrap="nowrap">
+    <Group gap={8} wrap="nowrap">
       {/*
-        Un admin entra por acá igual que cualquiera: esta es la pantalla de su
-        cuenta. Sin este atajo tendría que escribir /admin a mano para llegar al
-        panel, que es la clase de cosa que se sabe una vez y se olvida. Para un
-        usuario normal no existe.
+        Cambiar de vista es ir y volver entre dos formas de la misma app, no
+        entrar a otra pantalla: por eso las dos flechas cruzadas y el mismo
+        control acá y en el encabezado del admin, con el nombre del lado al que
+        se va. Para un usuario normal no existe.
       */}
       {perfil?.rol === 'admin' && (
-        <Tooltip label="Ir a administración">
-          <ActionIcon
+        <Tooltip label="Cambiar a la vista de administración">
+          <UnstyledButton
             component={Link}
             to="/admin"
-            variant="subtle"
-            color="violeta"
-            aria-label="Ir a administración"
+            className="chip-encabezado"
+            aria-label="Cambiar a la vista de administración"
           >
-            <IconLayoutGrid size={19} />
-          </ActionIcon>
+            <IconArrowsLeftRight size={16} stroke={1.7} />
+            <Text fz={13} fw={500} visibleFrom="xs">
+              Administración
+            </Text>
+          </UnstyledButton>
         </Tooltip>
       )}
-      <Text fz={14} c="var(--ely-texto-2)" visibleFrom="xs">
-        {perfil?.nombre}
-      </Text>
-      <Tooltip label="Salir">
-        <ActionIcon
-          variant="subtle"
-          color="gray"
-          aria-label="Salir"
-          onClick={() => void salir()}
-        >
-          <IconPower size={19} />
-        </ActionIcon>
-      </Tooltip>
+
+      {/*
+        El nombre es el botón. Antes era un texto al lado de un ícono de apagado
+        —y lo único que se podía hacer con la cuenta era perderla de un click
+        mal dado. Ahora abre Mi cuenta, y ahí adentro está también la salida.
+      */}
+      <UnstyledButton
+        className="chip-encabezado"
+        onClick={() => setCuenta(true)}
+        aria-label="Mi cuenta"
+      >
+        <IconUser size={17} stroke={1.7} />
+        <Text fz={13} fw={500} visibleFrom="xs">
+          {perfil?.nombre ?? 'Mi cuenta'}
+        </Text>
+      </UnstyledButton>
     </Group>
   );
 
@@ -159,65 +176,68 @@ export function AppLayout() {
 
   if (escritorio) {
     return (
-      <AppShell
-        className="usuario"
-        header={{ height: 64 }}
-        navbar={{ width: 236, breakpoint: 0 }}
-        padding="xl"
-        styles={{
-          header: {
-            background: 'var(--ely-fondo)',
-            borderColor: 'var(--ely-borde-tenue)',
-          },
-          navbar: {
-            background: 'var(--ely-superficie)',
-            borderColor: 'var(--ely-borde-tenue)',
-          },
-          main: { background: 'var(--ely-fondo)' },
-        }}
-      >
-        <AppShell.Header>
-          <Group h="100%" px="lg" justify="space-between" wrap="nowrap">
-            {marca}
-            {acciones}
-          </Group>
-        </AppShell.Header>
+      <>
+        <AppShell
+          className="usuario"
+          header={{ height: 64 }}
+          navbar={{ width: 236, breakpoint: 0 }}
+          padding="xl"
+          styles={{
+            header: {
+              background: 'var(--ely-fondo)',
+              borderColor: 'var(--ely-borde-tenue)',
+            },
+            navbar: {
+              background: 'var(--ely-superficie)',
+              borderColor: 'var(--ely-borde-tenue)',
+            },
+            main: { background: 'var(--ely-fondo)' },
+          }}
+        >
+          <AppShell.Header>
+            <Group h="100%" px="lg" justify="space-between" wrap="nowrap">
+              {marca}
+              {acciones}
+            </Group>
+          </AppShell.Header>
 
-        <AppShell.Navbar p="sm" style={{ overflow: 'hidden' }}>
-          {/* El mismo foco de luz que en el teléfono cae detrás del encabezado. */}
-          <Box className="halo" top={-230} left={-110} w={340} h={340} />
-          <Stack gap={4} style={{ position: 'relative' }}>
-            {item(INICIO)}
-            {/*
+          <AppShell.Navbar p="sm" style={{ overflow: 'hidden' }}>
+            {/* El mismo foco de luz que en el teléfono cae detrás del encabezado. */}
+            <Box className="halo" top={-230} left={-110} w={340} h={340} />
+            <Stack gap={4} style={{ position: 'relative' }}>
+              {item(INICIO)}
+              {/*
               El rótulo con su línea agrupa lo que se mira seguido y separa el
               inicio, que es de donde se sale. Es el mismo recurso que la barra
               del admin, con la tipografía de acá.
             */}
-            <Text
-              className="rotulo"
-              px={8}
-              pt={14}
-              pb={5}
-              mb={2}
-              style={{ borderBottom: '1px solid var(--ely-borde-tenue)' }}
-            >
-              Tu catálogo
-            </Text>
-            {catalogo.map(item)}
-          </Stack>
-        </AppShell.Navbar>
+              <Text
+                className="rotulo"
+                px={8}
+                pt={14}
+                pb={5}
+                mb={2}
+                style={{ borderBottom: '1px solid var(--ely-borde-tenue)' }}
+              >
+                Tu catálogo
+              </Text>
+              {catalogo.map(item)}
+            </Stack>
+          </AppShell.Navbar>
 
-        <AppShell.Main>
-          <Container size={700} px={0}>
-            {(deuda.datos?.total ?? 0) > 0 && (
-              <Box mb="lg">
-                <BandaDeuda deuda={deuda.datos} />
-              </Box>
-            )}
-            <Outlet />
-          </Container>
-        </AppShell.Main>
-      </AppShell>
+          <AppShell.Main>
+            <Container size={700} px={0}>
+              {(deuda.datos?.total ?? 0) > 0 && (
+                <Box mb="lg">
+                  <BandaDeuda deuda={deuda.datos} />
+                </Box>
+              )}
+              <Outlet />
+            </Container>
+          </AppShell.Main>
+        </AppShell>
+        {modalCuenta}
+      </>
     );
   }
 
@@ -285,6 +305,8 @@ export function AppLayout() {
       <Container size={520} px="md" py="lg">
         <Outlet />
       </Container>
+
+      {modalCuenta}
     </Box>
   );
 }

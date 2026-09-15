@@ -4,7 +4,7 @@
 > `src/app/theme.ts` y `src/components/ui/`.
 > El área de **insumos y precios** (`src/features/insumos/`) es la implementación
 > de referencia: si algo de acá no queda claro, mirá cómo se usa ahí.
-> **Última actualización:** 2026-09-14
+> **Última actualización:** 2026-09-15
 
 ---
 
@@ -208,6 +208,14 @@ const columnas: Columna<Insumo>[] = [
 `<Formulario>` — **una columna**, etiquetas arriba del campo, guardar fijo abajo
 siempre visible, y aviso antes de salir con cambios sin guardar (por navegación
 y por cerrar la pestaña).
+
+La columna va dentro de una **hoja con borde**, del mismo tono que el fondo
+(`noche.7`): sobre una pantalla ancha y vacía, los campos sueltos no se leen
+como una columna sino como algo abandonado contra el margen. No sube a `noche.6`
+porque ahí viven los inputs y la hoja los aplanaría. Y la barra de guardar se
+alinea con esa columna —arranca donde termina la barra lateral, con el mismo
+padding que el contenido—, así el guardar cae debajo del último campo y no en el
+medio de la pantalla.
 
 `<Formulario.Seccion>` agrupa con título; se usa cuando el formulario pasa de
 ocho campos.

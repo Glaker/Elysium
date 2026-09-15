@@ -117,6 +117,70 @@ input[inputmode='decimal'] {
 }
 
 /*
+ * Las filas del inicio del usuario: son links, y sin hover una lista de filas
+ * separadas por una línea no se distingue de un cartel. No se pinta el fondo
+ * entero —la fila no es una tarjeta (§3)— sino que se aclara el texto y la
+ * flecha se corre un par de pixeles hacia donde va.
+ */
+.usuario .fila-atajo {
+  transition:
+    background-color 120ms ease,
+    padding-left 120ms ease;
+  border-radius: 10px;
+}
+
+.usuario .fila-atajo:hover {
+  background: var(--ely-superficie);
+  padding-left: 10px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .usuario .fila-atajo {
+    transition: none;
+  }
+
+  .usuario .fila-atajo:hover {
+    padding-left: 0;
+  }
+}
+
+/*
+ * Los dos controles del encabezado del usuario: cambiar de vista y la cuenta.
+ *
+ * Son pastillas y no íconos sueltos. Tres íconos en fila arriba a la derecha
+ * obligaban a probarlos para saber cuál era cuál —y uno de ellos cerraba la
+ * sesión—; con el borde y el nombre adentro cada uno dice qué es sin tooltip.
+ * El borde es el tenue de siempre: marcan un área para el click, no compiten
+ * con el cian de la acción de cada pantalla.
+ */
+.usuario .chip-encabezado {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 34px;
+  padding: 0 11px;
+  border: 1px solid var(--ely-borde-tenue);
+  border-radius: 999px;
+  color: var(--ely-texto-2);
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease,
+    color 120ms ease;
+}
+
+.usuario .chip-encabezado:hover {
+  background: var(--ely-superficie);
+  border-color: var(--ely-borde);
+  color: var(--ely-texto);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .usuario .chip-encabezado {
+    transition: none;
+  }
+}
+
+/*
  * El halo violeta del fondo. Es lo único que queda del degradado: un solo foco
  * de luz detrás del encabezado, no una superficie pintada.
  */
@@ -163,5 +227,77 @@ input[inputmode='decimal'] {
 @media (prefers-reduced-motion: reduce) {
   .pantalla-carga {
     animation: carga-aparecer 0.25s ease-out 0.15s forwards;
+  }
+}
+
+/*
+ * El halo de la pantalla de entrada es el mismo foco, pero grande: es la única
+ * pantalla sin barra, sin datos y sin nada más que la marca, y un halo del
+ * tamaño de los del encabezado se perdía en el vacío. Al agrandarlo el borde se
+ * diluye mucho antes, así que el núcleo se sostiene con una parada intermedia:
+ * sin ella la luz queda pareja y no se lee como un foco detrás del logo.
+ */
+.usuario .halo-inicio {
+  background: radial-gradient(
+    circle,
+    rgba(134, 59, 255, 0.3) 0%,
+    rgba(134, 59, 255, 0.13) 32%,
+    rgba(134, 59, 255, 0) 70%
+  );
+}
+
+/*
+ * La entrada de la pantalla: sube unos pixeles mientras aparece. Es el primer
+ * cuadro que ve alguien que abre la app, y el corte seco después del splash se
+ * notaba.
+ */
+.entrada-inicio {
+  animation: entrada-inicio-aparecer 0.45s ease-out both;
+}
+
+@keyframes entrada-inicio-aparecer {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .entrada-inicio {
+    animation: none;
+  }
+}
+
+/*
+ * Entrar y crear la cuenta son la misma pantalla, así que al cambiar de modo
+ * nada aparece de golpe: los campos del alta los abre y cierra el Collapse, y
+ * el texto que se reemplaza en el lugar —el subtítulo, el botón, el pie— entra
+ * con un desvanecido corto para que la pantalla se lea como una sola cosa que
+ * se acomoda y no como dos formularios que se turnan.
+ */
+.cambio-de-modo {
+  display: inline-block;
+  animation: cambio-de-modo-entrar 0.26s ease-out;
+}
+
+@keyframes cambio-de-modo-entrar {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Quien pidió menos movimiento cambia de modo sin transición alguna. */
+@media (prefers-reduced-motion: reduce) {
+  .cambio-de-modo {
+    animation: none;
   }
 }

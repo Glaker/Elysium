@@ -48,6 +48,13 @@ export type Lote = {
   perdida: number | null;
   responsableId: string | null;
   responsable: string | null;
+  /**
+   * Cuándo la responsable cargó el resultado desde su teléfono (§17). Que esté
+   * puesto y el lote siga abierto significa que hay un parte esperando revisión:
+   * `obtenidas`, `perdida` y las horas de `lote_personas` ya son lo que ella
+   * declaró, no un plan.
+   */
+  reportadoEn: string | null;
   notas: string | null;
   /** Parámetros congelados al cierre. Nulos mientras el lote está abierto. */
   mermaAplicada: number | null;
@@ -86,6 +93,7 @@ type FilaLote = {
   valor_hora_aplicado: number | null;
   regalias_aplicado: number | null;
   responsable_persona_id: string | null;
+  reportado_en: string | null;
   notas: string | null;
   personas: { nombre_completo: string | null } | null;
   tamanos: {
@@ -110,7 +118,7 @@ export async function listarLotes(): Promise<Lote[]> {
     supabase
       .from('lotes')
       .select(
-        'id, codigo, fecha, estado, resultado, variante, tamano_id, insumo_producido_id, unidades_planificadas, unidades_obtenidas, perdida_cantidad, merma_pct_aplicado, valor_hora_aplicado, regalias_aplicado, responsable_persona_id, notas, personas (nombre_completo), tamanos (nombre, magnitud, unidad, productos (nombre)), insumos (nombre, unidad)',
+        'id, codigo, fecha, estado, resultado, variante, tamano_id, insumo_producido_id, unidades_planificadas, unidades_obtenidas, perdida_cantidad, merma_pct_aplicado, valor_hora_aplicado, regalias_aplicado, responsable_persona_id, reportado_en, notas, personas (nombre_completo), tamanos (nombre, magnitud, unidad, productos (nombre)), insumos (nombre, unidad)',
       )
       .order('fecha', { ascending: false })
       .order('creado_en', { ascending: false }),
@@ -150,6 +158,7 @@ export async function listarLotes(): Promise<Lote[]> {
       perdida: f.perdida_cantidad,
       responsableId: f.responsable_persona_id,
       responsable: f.personas?.nombre_completo ?? null,
+      reportadoEn: f.reportado_en,
       notas: f.notas,
       mermaAplicada: f.merma_pct_aplicado,
       valorHoraAplicado: f.valor_hora_aplicado,

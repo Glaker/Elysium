@@ -37,6 +37,7 @@ import { InicioPage } from '@/pages/InicioPage';
 import { LoginPage } from '@/pages/LoginPage';
 import { MateriaPrimaPage } from '@/pages/MateriaPrimaPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
+import { ProduccionPage } from '@/pages/ProduccionPage';
 import { ProductosPage } from '@/pages/ProductosPage';
 
 export const router = createBrowserRouter([
@@ -52,7 +53,10 @@ export const router = createBrowserRouter([
           { path: 'productos', element: <ProductosPage /> },
           {
             element: <RutaProductora />,
-            children: [{ path: 'materia-prima', element: <MateriaPrimaPage /> }],
+            children: [
+              { path: 'materia-prima', element: <MateriaPrimaPage /> },
+              { path: 'produccion', element: <ProduccionPage /> },
+            ],
           },
         ],
       },
@@ -95,10 +99,16 @@ export const router = createBrowserRouter([
           { path: 'stock/ubicaciones', element: <UbicacionesPage /> },
           { path: 'stock/recuentos', element: <RecuentosPage /> },
           { path: 'stock/recuentos/:id', element: <RecuentoPage /> },
+          { path: 'stock/pedidos', element: <SolicitudesPage /> },
           { path: 'ventas', element: <VentasPage /> },
           { path: 'ventas/nueva', element: <VentaNuevaPage /> },
           { path: 'ventas/cuentas', element: <CuentasPage /> },
-          { path: 'ventas/solicitudes', element: <SolicitudesPage /> },
+          // Los pedidos vivían dentro de ventas; ahora cuelgan del stock, que
+          // es contra lo que se responden. El link viejo sigue entrando.
+          {
+            path: 'ventas/solicitudes',
+            element: <Navigate to="/admin/stock/pedidos" replace />,
+          },
           { path: 'ventas/:id', element: <VentaPage /> },
           { path: 'deudores', element: <DeudoresPage /> },
           { path: 'deudores/:id', element: <DeudorPage /> },

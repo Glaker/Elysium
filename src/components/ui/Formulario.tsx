@@ -76,25 +76,38 @@ export function Formulario({
           void onGuardar();
         }}
       >
-        <Stack gap="lg" pb={72}>
-          {children}
-          {error && (
-            <Alert
-              color="error"
-              variant="light"
-              icon={<IconAlertTriangle size={16} />}
-              title="No se pudo guardar"
-            >
-              {error}
-            </Alert>
-          )}
-        </Stack>
+        {/*
+          La hoja. Es del mismo tono que el fondo y se define por el borde: un
+          formulario suelto sobre la pantalla vacía no se lee como una columna
+          sino como campos abandonados a la izquierda. Subirla a `noche.6`
+          aplanaría los inputs, que viven en ese escalón.
+        */}
+        <Paper withBorder bg="noche.7" p="lg" mb={88}>
+          <Stack gap="lg">
+            {children}
+            {error && (
+              <Alert
+                color="error"
+                variant="light"
+                icon={<IconAlertTriangle size={16} />}
+                title="No se pudo guardar"
+              >
+                {error}
+              </Alert>
+            )}
+          </Stack>
+        </Paper>
 
-        {/* Guardar fijo abajo, siempre visible. */}
+        {/*
+          Guardar fijo abajo, siempre visible — y alineado con la columna, no
+          centrado en la pantalla: los botones tienen que caer debajo del último
+          campo, no a treinta centímetros a la derecha de él. De ahí el offset de
+          la barra lateral y el mismo padding que el del contenido.
+        */}
         <Paper
           pos="fixed"
           bottom={0}
-          left={0}
+          left="var(--app-shell-navbar-offset, 0px)"
           right={0}
           radius={0}
           withBorder
@@ -103,7 +116,7 @@ export function Formulario({
           px="lg"
           style={{ zIndex: 20 }}
         >
-          <Group justify="space-between" maw={ancho + 320} mx="auto">
+          <Group justify="space-between" maw={ancho}>
             <Group gap="xs">{extra}</Group>
             <Group gap="xs">
               <Text size="xs" c="dimmed">

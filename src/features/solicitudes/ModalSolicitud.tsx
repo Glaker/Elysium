@@ -17,6 +17,7 @@ import { useNavigate } from 'react-router';
 import { BadgeEstado } from '@/components/ui/BadgeEstado';
 import { ETIQUETA_VARIANTE } from '@/features/productos/api';
 import {
+  abrirLoteDelPedido,
   aprobarComoVenta,
   ETIQUETA_TIPO,
   insumosDelPedido,
@@ -69,6 +70,16 @@ export function ModalSolicitud({ solicitud: s, onClose, onResuelta }: Props) {
       setTrabajando(false);
     }
   }
+
+  // Entregar el material y abrir el lote son el mismo acto: el pedido dice qué
+  // se va a fabricar y cuánto, que es todo lo que un lote necesita para nacer.
+  // Sin esto, el resultado de esa producción no tendría dónde entrar.
+  const abrirLote = () =>
+    correr(async () => {
+      const loteId = await abrirLoteDelPedido(s.id);
+      onResuelta();
+      navigate(`/admin/lotes/${loteId}`);
+    });
 
   const aprobar = () =>
     correr(async () => {
@@ -160,8 +171,18 @@ export function ModalSolicitud({ solicitud: s, onClose, onResuelta }: Props) {
 
             <Text size="xs" c="dimmed">
               Las cantidades salen de la fórmula de hoy e incluyen la merma esperada. La
-              salida del insumo se registra en Stock: marcar el pedido no mueve nada.
+              salida del insumo se registra en Stock: entregar el pedido no mueve nada.
             </Text>
+
+            {s.loteId && (
+              <Button
+                variant="default"
+                size="xs"
+                onClick={() => navigate(`/admin/lotes/${s.loteId}`)}
+              >
+                Ver el lote de este pedido
+              </Button>
+            )}
           </Stack>
         ) : (
           <Table striped={false} withRowBorders={false} verticalSpacing={4}>
@@ -250,8 +271,12 @@ export function ModalSolicitud({ solicitud: s, onClose, onResuelta }: Props) {
                 Rechazar
               </Button>
               {esMP ? (
-                <Button loading={trabajando} onClick={() => void resolver('aprobada')}>
-                  Marcar como entregado
+                <Button
+                  loading={trabajando}
+                  disabled={!s.tamanoObjetivoId || !s.unidadesObjetivo}
+                  onClick={() => void abrirLote()}
+                >
+                  Entregar y abrir el lote
                 </Button>
               ) : (
                 <Button

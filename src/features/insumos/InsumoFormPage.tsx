@@ -1,4 +1,12 @@
-import { Anchor, Select, Switch, Text, TextInput, Textarea } from '@mantine/core';
+import {
+  Anchor,
+  SegmentedControl,
+  Select,
+  Switch,
+  Text,
+  TextInput,
+  Textarea,
+} from '@mantine/core';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 
@@ -120,6 +128,11 @@ export function InsumoFormPage() {
   return (
     <Pagina
       titulo={id ? `Editar ${existente.datos?.nombre ?? ''}` : 'Nuevo insumo'}
+      descripcion={
+        id
+          ? undefined
+          : 'Acá se define qué es el insumo. El precio se carga después, desde su ficha.'
+      }
       volver={{
         a: id ? `/admin/insumos/${id}` : '/admin/insumos',
         texto: id ? 'Volver a la ficha' : 'Volver a insumos',
@@ -151,6 +164,26 @@ export function InsumoFormPage() {
             onChange={(v) => f.set('tipo', (v ?? 'materia_prima') as TipoInsumo)}
             allowDeselect={false}
           />
+          {/*
+            El origen va acá arriba y no en su propia sección más abajo porque
+            es lo que le da sentido al campo siguiente: la unidad se llama "de
+            compra" o no según esta respuesta, y una etiqueta que cambia sola
+            después de haberla leído es una etiqueta que no se lee.
+          */}
+          <SegmentedControl
+            fullWidth
+            data={[
+              { value: 'comprado', label: 'Se compra' },
+              { value: 'producido', label: 'Se produce' },
+            ]}
+            value={f.valores.origen}
+            onChange={(v) => f.set('origen', v as OrigenInsumo)}
+          />
+          <Text size="xs" c="dimmed" mt={-6}>
+            {producido
+              ? 'Materia prima intermedia: su costo sale de la composición y no de un precio de lista.'
+              : 'Se le carga un precio de lista, opcionalmente con proveedor.'}
+          </Text>
           <Select
             label={producido ? 'Unidad' : 'Unidad de compra'}
             description={
@@ -169,22 +202,8 @@ export function InsumoFormPage() {
           />
         </Formulario.Seccion>
 
-        <Formulario.Seccion
-          titulo="Origen"
-          descripcion="Si Elysium lo fabrica, su costo sale de la composición y no de un precio de lista."
-        >
-          <Select
-            label="Se compra o se produce"
-            data={[
-              { value: 'comprado', label: 'Se compra' },
-              { value: 'producido', label: 'Se produce (MP intermedia)' },
-            ]}
-            value={f.valores.origen}
-            onChange={(v) => f.set('origen', (v ?? 'comprado') as OrigenInsumo)}
-            allowDeselect={false}
-          />
-
-          {producido ? (
+        {producido ? (
+          <Formulario.Seccion titulo="Producción">
             <CampoNumerico
               label="Rinde de una tanda"
               description="Cuánto sale de producirlo una vez. El costo de la composición se divide por este número."
@@ -195,54 +214,61 @@ export function InsumoFormPage() {
               onChange={(v) => f.set('rinde', v)}
               {...f.campo('rinde')}
             />
-          ) : (
-            <>
-              <Select
-                label="Proveedor"
-                placeholder={
-                  proveedores.cargando ? 'Cargando…' : 'Elegí uno o dejalo vacío'
-                }
-                searchable
-                clearable
-                data={(proveedores.datos ?? []).map((p) => ({
-                  value: p.id,
-                  label: p.nombre,
-                }))}
-                value={f.valores.proveedorId}
-                onChange={(v) => f.set('proveedorId', v)}
-                {...f.campo('proveedorId')}
-              />
-              <Text size="xs" c="dimmed" mt={-6}>
-                ¿No está en la lista?{' '}
-                <Anchor component={Link} to="/admin/insumos/proveedores" size="xs">
-                  Cargalo en proveedores
-                </Anchor>
-                .
-              </Text>
-              <TextInput
-                label="Link de este insumo"
-                description="La página exacta del producto, si es distinta de la del proveedor."
-                placeholder="https://…"
-                {...f.texto('link')}
-              />
-            </>
-          )}
-        </Formulario.Seccion>
+          </Formulario.Seccion>
+        ) : (
+          <Formulario.Seccion titulo="Compra">
+            <Select
+              label="Proveedor"
+              placeholder={
+                proveedores.cargando ? 'Cargando…' : 'Elegí uno o dejalo vacío'
+              }
+              searchable
+              clearable
+              data={(proveedores.datos ?? []).map((p) => ({
+                value: p.id,
+                label: p.nombre,
+              }))}
+              value={f.valores.proveedorId}
+              onChange={(v) => f.set('proveedorId', v)}
+              {...f.campo('proveedorId')}
+            />
+            <Text size="xs" c="dimmed" mt={-6}>
+              ¿No está en la lista?{' '}
+              <Anchor component={Link} to="/admin/insumos/proveedores" size="xs">
+                Cargalo en proveedores
+              </Anchor>
+              .
+            </Text>
+            <TextInput
+              label="Link de este insumo"
+              description="La página exacta del producto, si es distinta de la del proveedor."
+              placeholder="https://…"
+              {...f.texto('link')}
+            />
+          </Formulario.Seccion>
+        )}
 
         <Formulario.Seccion titulo="Otros">
           <Textarea
             label="Notas"
+            placeholder="Lo que haga falta recordar de este insumo."
             autosize
             minRows={2}
             maxRows={6}
             {...f.texto('notas')}
           />
-          <Switch
-            label="Activo"
-            description="Un insumo inactivo sigue existiendo para el histórico, pero no se ofrece al cargar fórmulas."
-            checked={f.valores.activo}
-            onChange={(e) => f.set('activo', e.currentTarget.checked)}
-          />
+          {/*
+            El interruptor solo en la edición: un insumo que se está creando
+            nace activo, y preguntarlo en el alta es un campo que nadie toca.
+          */}
+          {id && (
+            <Switch
+              label="Activo"
+              description="Un insumo inactivo sigue existiendo para el histórico, pero no se ofrece al cargar fórmulas."
+              checked={f.valores.activo}
+              onChange={(e) => f.set('activo', e.currentTarget.checked)}
+            />
+          )}
         </Formulario.Seccion>
       </Formulario>
     </Pagina>

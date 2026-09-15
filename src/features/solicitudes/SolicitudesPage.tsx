@@ -134,7 +134,7 @@ export function SolicitudesPage() {
     <Pagina
       titulo="Pedidos"
       descripcion="Lo que te pidieron desde la app. Un pedido es un aviso: no aparta stock ni es una venta hasta que vos la crees."
-      volver={{ a: '/admin/ventas', texto: 'Volver a ventas' }}
+      volver={{ a: '/admin/stock/productos', texto: 'Volver a stock' }}
       acciones={
         <Button
           variant="default"

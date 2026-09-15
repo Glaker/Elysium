@@ -65,8 +65,18 @@ por su cuenta ni las dos puedan desincronizarse. El teléfono se llama `telefono
 
 **Los roles viven en dos lados y no es un descuido.** `perfiles.rol`
 (admin | usuario) es de la **cuenta** y lo lee el RLS; `es_revendedor` y
-`es_productor` son de la **persona**, describen el vínculo comercial y no dan
-ningún permiso.
+`es_productor` son de la **persona** y valen aunque nunca se registre. Eso sí:
+desde §15 `es_productor` **sí da permiso** —abre la fórmula y el pedido de
+materia prima—, así que de los tres el único puramente comercial es
+`es_revendedor`.
+
+El padrón los separa por eso y no por dónde se guardan: **el escudo son los
+permisos** —productora y rol de la cuenta, lo que abre la fórmula y lo que abre
+la administración—, aunque por debajo sean dos tablas y dos escrituras (un
+`update` sobre `personas` y `cambiar_rol()` sobre `perfiles`). **El lápiz es la
+ficha**: contacto y `es_revendedor`, que no habilita nada y solo dice qué precio
+ve. Habilitar el acceso a la receta no puede ser un switch al lado del teléfono;
+cambiarle la tarifa a alguien sí es un dato más de su ficha.
 
 `personas` sigue separada de `perfiles` aunque hoy toda persona tenga cuenta:
 son dos cosas distintas —una es con quién se hace negocio y la otra con qué
@@ -82,6 +92,15 @@ venta puede seguir no teniendo persona —la de mostrador, que no genera deuda�
 pero para deberle plata a alguien ese alguien tiene que haberse registrado.
 Antes no era así, y el precio de que no lo fuera era un padrón lleno de fichas a
 medio cargar que después no matcheaban con quien se registraba.
+
+Editar la propia ficha va por `actualizar_mis_datos(nombre, apellido, telefono)`
+y no por una policy de `UPDATE`, por una razón concreta: **una policy no puede
+limitar qué columnas se escriben**. Con el update abierto a `perfil_id =
+auth.uid()`, cualquiera se pondría `es_revendedor` o `activo` desde la consola
+del navegador. La función escribe esas tres columnas y ninguna más, mantiene en
+sincronía `perfiles.nombre` —que es el que saluda la app— y rechaza un teléfono
+que ya figure en otra ficha, porque es con lo que `alta_de_cuenta()` reconoce a
+quien ya existía en el padrón.
 
 `personas.es_revendedor` y `personas.es_productor` son **acumulables**: el mismo
 estudiante puede fabricar lotes y además llevarse producto para revender, que es
@@ -209,6 +228,36 @@ casos los insumos se consumieron. `ok` entra todo; `descarte` no entra nada y la
 pérdida queda registrada con su costo; `reproceso` entra lo recuperado. El costo
 unitario real es `costo total ÷ unidades obtenidas`, y por eso un reprocesado sale
 más caro. Ese cociente es calculado (`v_lote_costo`), no almacenado.
+
+#### Reportar no es cerrar (§17)
+
+Un lote de una productora nace del pedido: `lote_desde_solicitud()` toma un
+pedido de materia prima —que ya dice qué se va a fabricar y cuánto— y abre el
+lote con ella como responsable, planificando los insumos desde la fórmula.
+`solicitudes.lote_id` guarda ese vínculo, único. Que el pedido y la producción
+sean **la misma fila** es lo que hace que "cargá el resultado de tus insumos" no
+necesite que nadie aparee dos listas de memoria.
+
+Después hay dos actos distintos y de dos personas distintas:
+
+| Acto         | Quién       | Qué escribe                                                             |
+| ------------ | ----------- | ----------------------------------------------------------------------- |
+| **Reportar** | Responsable | `unidades_obtenidas`, `perdida_cantidad`, `resultado`, `lote_personas`. |
+| **Cerrar**   | Admin       | Congela costo, merma y valor hora; mueve el stock. Irreversible.        |
+
+`registrar_resultado_lote()` reporta y **deja el lote abierto**; se puede volver
+a llamar mientras siga abierto, porque el primer número que alguien escribe
+después de una jornada de trabajo no siempre es el bueno y corregirlo no debería
+necesitar un admin. `reportado_en` es lo que distingue un lote con un parte
+esperando revisión de uno que todavía no produjo nada, y es con lo que se
+prellena el cierre.
+
+La productora nunca ve plata: `mis_lotes()`, `mi_lote_personas()` y
+`companeras_de_produccion()` son `SECURITY DEFINER` con las columnas elegidas a
+mano, por la misma razón de siempre —el RLS filtra filas, no columnas, y la fila
+del lote tiene el costo congelado al lado—. `importe_pagado` de `lote_personas`
+no se toca desde ese camino: ella declara horas, la administración pone los
+importes.
 
 #### DECISIÓN MÍA: las regalías se cobran por unidad que ENTRA AL STOCK
 

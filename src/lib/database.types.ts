@@ -516,6 +516,8 @@ export type Database = {
       };
       lotes: {
         Row: {
+          reportado_por: string | null;
+          reportado_en: string | null;
           cerrado_en: string | null;
           cerrado_por: string | null;
           codigo: string | null;
@@ -540,6 +542,8 @@ export type Database = {
           variante: Database['public']['Enums']['variante_producto'];
         };
         Insert: {
+          reportado_por?: string | null;
+          reportado_en?: string | null;
           cerrado_en?: string | null;
           cerrado_por?: string | null;
           codigo?: string | null;
@@ -564,6 +568,8 @@ export type Database = {
           variante?: Database['public']['Enums']['variante_producto'];
         };
         Update: {
+          reportado_por?: string | null;
+          reportado_en?: string | null;
           cerrado_en?: string | null;
           cerrado_por?: string | null;
           codigo?: string | null;
@@ -1292,6 +1298,7 @@ export type Database = {
       };
       solicitudes: {
         Row: {
+          lote_id: string | null;
           creado_en: string;
           estado: Database['public']['Enums']['estado_solicitud'];
           fecha: string;
@@ -1305,6 +1312,7 @@ export type Database = {
           unidades_objetivo: number | null;
         };
         Insert: {
+          lote_id?: string | null;
           creado_en?: string;
           estado?: Database['public']['Enums']['estado_solicitud'];
           fecha?: string;
@@ -1318,6 +1326,7 @@ export type Database = {
           unidades_objetivo?: number | null;
         };
         Update: {
+          lote_id?: string | null;
           creado_en?: string;
           estado?: Database['public']['Enums']['estado_solicitud'];
           fecha?: string;
@@ -1814,6 +1823,10 @@ export type Database = {
       };
     };
     Functions: {
+      actualizar_mis_datos: {
+        Args: { p_apellido: string; p_nombre: string; p_telefono: string };
+        Returns: undefined;
+      };
       anular_venta: { Args: { p_venta_id: string }; Returns: number };
       aprobar_solicitud_como_venta: {
         Args: {
@@ -1961,9 +1974,40 @@ export type Database = {
         Args: { p_recuento_id: string };
         Returns: undefined;
       };
+      lote_desde_solicitud: {
+        Args: { p_fecha?: string; p_solicitud_id: string };
+        Returns: string;
+      };
+      mi_lote_personas: {
+        Args: { p_lote_id: string };
+        Returns: { horas: number | null; nombre: string; persona_id: string }[];
+      };
+      mis_lotes: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          estado: Database['public']['Enums']['estado_lote'];
+          fecha: string;
+          id: string;
+          notas: string | null;
+          perdida_cantidad: number | null;
+          producto: string | null;
+          reportado_en: string | null;
+          resultado: Database['public']['Enums']['resultado_lote'] | null;
+          tamano: string | null;
+          unidades_obtenidas: number | null;
+          unidades_planificadas: number;
+        }[];
+      };
+      companeras_de_produccion: {
+        Args: Record<PropertyKey, never>;
+        Returns: { id: string; nombre: string }[];
+      };
       registrar_resultado_lote: {
         Args: {
           p_lote_id: string;
+          p_notas?: string | null;
+          p_perdida_cantidad?: number | null;
+          p_personas?: Json;
           p_resultado: Database['public']['Enums']['resultado_lote'];
           p_unidades_obtenidas: number;
         };

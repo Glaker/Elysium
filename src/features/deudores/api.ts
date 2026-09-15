@@ -90,19 +90,40 @@ export type DatosPersona = {
   apellido: string | null;
   telefono: string | null;
   notas: string | null;
+  /** Tarifa, no permiso: define si el catálogo le muestra el costo. */
   es_revendedor: boolean;
-  es_productor: boolean;
   activo: boolean;
 };
 
 /**
  * Corregir una ficha. **No hay alta**: una persona entra al padrón cuando se
  * crea la cuenta, y la ficha la escribe el trigger `alta_de_cuenta()` con lo que
- * cargó ella misma. Lo que se edita acá es lo que la base no puede saber sola
- * —quién revende, quién fabrica— y los datos mal escritos.
+ * cargó ella misma. Lo que se edita acá son los datos mal escritos y la
+ * condición comercial —revendedora, que no habilita nada y solo define qué
+ * precio ve—. Qué puede *hacer* va por `cambiarPermisos` y `cambiarRol`.
  */
 export async function actualizarPersona(id: string, datos: DatosPersona) {
   const { error } = await supabase.from('personas').update(datos).eq('id', id);
+  if (error) throw new Error(error.message);
+}
+
+/**
+ * Quién fabrica lotes.
+ *
+ * Va en su propia función —y no como un campo más de la ficha— porque no es un
+ * dato sino un permiso: `es_productor` es lo que habilita pedir materia prima y
+ * leer la fórmula (`es_productora()`, migración 15). Se guarda junto al rol, en
+ * la pantalla de permisos, para que abrir la receta sea siempre un acto
+ * deliberado y no algo que pasa mientras se corrige un teléfono.
+ *
+ * Su hermano `es_revendedor` no está acá justamente porque no abre nada: es la
+ * tarifa de la persona y viaja con el resto de la ficha.
+ */
+export async function cambiarPermisos(id: string, esProductor: boolean) {
+  const { error } = await supabase
+    .from('personas')
+    .update({ es_productor: esProductor })
+    .eq('id', id);
   if (error) throw new Error(error.message);
 }
 

@@ -5,7 +5,12 @@ export type Rol = 'admin' | 'usuario';
 export type Perfil = { id: string; nombre: string | null; rol: Rol };
 export type Persona = {
   id: string;
+  /** El nombre completo: es el que se muestra. */
   nombre: string;
+  /** De pila y apellido por separado, que es como se editan en Mi cuenta. */
+  nombrePila: string;
+  apellido: string | null;
+  telefono: string | null;
   esRevendedor: boolean;
   esProductor: boolean;
 };

@@ -1,5 +1,5 @@
-import { Alert, Anchor, Badge, Button, Group, Select, Text } from '@mantine/core';
-import { IconAlertTriangle, IconInbox, IconPlus, IconWallet } from '@tabler/icons-react';
+import { Alert, Anchor, Button, Group, Select, Text } from '@mantine/core';
+import { IconAlertTriangle, IconPlus, IconWallet } from '@tabler/icons-react';
 import { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 
@@ -8,7 +8,6 @@ import { DatoIncompleto } from '@/components/ui/DatoIncompleto';
 import { Numero } from '@/components/ui/Numero';
 import { Pagina } from '@/components/ui/Pagina';
 import { Tabla, type Columna } from '@/components/ui/Tabla';
-import { contarPendientes } from '@/features/solicitudes/api';
 import { ETIQUETA_TIPO_VENTA, listarVentas, type Venta } from '@/features/ventas/api';
 import { fecha as fmtFecha, importe } from '@/lib/formato';
 import { useAsync } from '@/lib/useAsync';
@@ -40,7 +39,6 @@ export function EstadoVentaBadge({ v }: { v: Venta }) {
 export function VentasPage() {
   const navigate = useNavigate();
   const { datos, cargando, error } = useAsync(listarVentas, []);
-  const pedidos = useAsync(contarPendientes, []);
   const [filtro, setFiltro] = useState<Filtro>('todas');
 
   const filas = useMemo(() => {
@@ -152,21 +150,6 @@ export function VentasPage() {
       descripcion="Los dos flujos: la venta directa y la entrega para reventa. La deuda sale de acá, no se carga aparte."
       acciones={
         <>
-          <Button
-            variant="default"
-            component={Link}
-            to="/admin/ventas/solicitudes"
-            leftSection={<IconInbox size={15} />}
-            rightSection={
-              pedidos.datos ? (
-                <Badge size="sm" variant="light" color="advertencia" radius="sm">
-                  {pedidos.datos}
-                </Badge>
-              ) : undefined
-            }
-          >
-            Pedidos
-          </Button>
           <Button
             variant="default"
             component={Link}

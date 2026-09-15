@@ -2,6 +2,7 @@ import {
   ActionIcon,
   Alert,
   Anchor,
+  Box,
   Button,
   Divider,
   Group,
@@ -325,12 +326,25 @@ export function LotePage() {
             {l && <Numero valor={l.planificadas} sufijo={l.unidad} />}
           </Dato>
           <Dato etiqueta="Obtenido">
-            {!l ? null : abierto ? (
+            {/*
+              Un lote abierto puede tener obtenidas igual: es lo que reportó la
+              responsable desde su teléfono (§17). Se muestra —es el dato por el
+              que se entra a esta pantalla— pero dicho como lo que es, un parte
+              sin revisar, para que no se confunda con un número cerrado.
+            */}
+            {!l ? null : !abierto ? (
+              <Numero valor={l.obtenidas} sufijo={l.unidad} fw={600} />
+            ) : l.reportadoEn ? (
+              <Box>
+                <Numero valor={l.obtenidas} sufijo={l.unidad} fw={600} />
+                <Text size="xs" c="advertencia.4">
+                  reportado, sin cerrar
+                </Text>
+              </Box>
+            ) : (
               <Text size="sm" c="dimmed">
                 sin cerrar
               </Text>
-            ) : (
-              <Numero valor={l.obtenidas} sufijo={l.unidad} fw={600} />
             )}
           </Dato>
           <Dato etiqueta="Costo total">

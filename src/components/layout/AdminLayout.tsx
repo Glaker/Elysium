@@ -1,8 +1,8 @@
 import {
-  ActionIcon,
   AppShell,
   Badge,
   Box,
+  Button,
   Group,
   NavLink,
   ScrollArea,
@@ -12,12 +12,13 @@ import {
 } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
 import {
+  IconArrowsLeftRight,
   IconBoxSeam,
   IconHome,
+  IconInbox,
   IconBuildingFactory2,
   IconCalculator,
   IconFlask,
-  IconLogout,
   IconUser,
   IconReceipt2,
   IconPackages,
@@ -27,11 +28,13 @@ import {
   IconUsersGroup,
   type Icon,
 } from '@tabler/icons-react';
+import { useState } from 'react';
 import { Link as RouterLink, Outlet, useLocation } from 'react-router';
 
 import { useAuth } from '@/app/useAuth';
 import { Logo } from '@/components/Logo';
 import type { ContextoAdmin } from '@/components/layout/contextoAdmin';
+import { ModalCuenta } from '@/features/cuenta/ModalCuenta';
 import { contarPendientes } from '@/features/solicitudes/api';
 import { useAsync } from '@/lib/useAsync';
 
@@ -46,6 +49,8 @@ type Grupo = { titulo?: string; areas: Area[] };
  * salió. **Stock** es cuánto hay de eso, y va justo debajo porque es la misma
  * materia mirada de otra manera — de ahí que repita los dos nombres, insumos y
  * productos: son las dos mitades del stock, cada una con su unidad y su libro.
+ * Los pedidos van ahí abajo y no en caja: lo que se pide es mercadería, y se
+ * responde mirando lo que hay —todavía no es una venta.
  * **Caja** es todo lo que mueve plata, y por eso ventas encabeza el grupo: es de
  * donde sale, y gastos y deudores son sus dos consecuencias. Al final el padrón,
  * que se abre cuando entra alguien nuevo, no a diario.
@@ -65,6 +70,7 @@ const GRUPOS: Grupo[] = [
     areas: [
       { nombre: 'Insumos', ruta: '/admin/stock/insumos', icono: IconTestPipe },
       { nombre: 'Productos', ruta: '/admin/stock/productos', icono: IconPackages },
+      { nombre: 'Pedidos', ruta: '/admin/stock/pedidos', icono: IconInbox },
     ],
   },
   {
@@ -92,8 +98,9 @@ const GRUPOS: Grupo[] = [
  * Ninguna acción es violeta.
  */
 export function AdminLayout() {
-  const { perfil, salir } = useAuth();
+  const { perfil } = useAuth();
   const { pathname } = useLocation();
+  const [cuenta, setCuenta] = useState(false);
   const angosta = useMediaQuery('(max-width: 1080px)');
   const ancho = angosta ? 64 : 236;
 
@@ -165,33 +172,36 @@ export function AdminLayout() {
           </Text>
 
           <Box style={{ flexGrow: 1 }} />
+          {/*
+            Los dos controles de la derecha son los mismos que en la app del
+            usuario y dicen lo mismo: a qué vista se cambia, y de quién es la
+            sesión. Salir ya no vive acá —está adentro de Mi cuenta— porque un
+            botón de apagado pegado al nombre es un click de distancia entre
+            mirar el padrón y quedarse afuera.
+          */}
           <Group gap="xs" wrap="nowrap">
-            <Text fz={14} c="dimmed">
-              {perfil?.nombre}
-            </Text>
-            <Tooltip label="Ver la app como usuario">
-              <ActionIcon
+            <Tooltip label="Cambiar a la vista de usuario">
+              <Button
                 component={RouterLink}
                 to="/"
-                variant="subtle"
-                color="gray"
-                size="lg"
-                aria-label="Ver la app como usuario"
+                variant="default"
+                size="compact-sm"
+                radius="xl"
+                leftSection={<IconArrowsLeftRight size={15} />}
               >
-                <IconUser size={20} />
-              </ActionIcon>
+                Vista usuario
+              </Button>
             </Tooltip>
-            <Tooltip label="Salir">
-              <ActionIcon
-                variant="subtle"
-                color="gray"
-                size="lg"
-                aria-label="Salir"
-                onClick={() => void salir()}
-              >
-                <IconLogout size={20} />
-              </ActionIcon>
-            </Tooltip>
+            <Button
+              variant="subtle"
+              color="gray"
+              size="compact-sm"
+              radius="xl"
+              leftSection={<IconUser size={15} />}
+              onClick={() => setCuenta(true)}
+            >
+              {perfil?.nombre ?? 'Mi cuenta'}
+            </Button>
           </Group>
         </Group>
       </AppShell.Header>
@@ -250,10 +260,11 @@ export function AdminLayout() {
                         ? pathname === '/admin'
                         : a.ruta === '/admin/stock/productos'
                           ? pathname.startsWith('/admin/stock') &&
-                            !pathname.startsWith('/admin/stock/insumos')
+                            !pathname.startsWith('/admin/stock/insumos') &&
+                            !pathname.startsWith('/admin/stock/pedidos')
                           : pathname.startsWith(a.ruta);
                     const icono = <a.icono size={20} stroke={1.6} />;
-                    const marca = a.ruta === '/admin/ventas' ? sinResponder : 0;
+                    const marca = a.ruta === '/admin/stock/pedidos' ? sinResponder : 0;
 
                     const comunes = {
                       active: activa,
@@ -323,6 +334,7 @@ export function AdminLayout() {
         <Outlet
           context={{ refrescarPendientes: pendientes.recargar } satisfies ContextoAdmin}
         />
+        {cuenta && <ModalCuenta onClose={() => setCuenta(false)} tema="admin" />}
       </AppShell.Main>
     </AppShell>
   );
