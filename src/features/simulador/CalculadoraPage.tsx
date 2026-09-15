@@ -180,7 +180,7 @@ export function CalculadoraPage() {
       descripcion="Para producir X unidades: cuánto hace falta de cada insumo y si alcanza con lo que hay."
       volver={{ a: '/admin/simulador', texto: 'Volver al simulador' }}
     >
-      <Paper withBorder p="md" bg="noche.8">
+      <Paper withBorder p="md" bg="noche.6">
         <Group align="flex-end" gap="md" wrap="wrap">
           <Select
             label="Tamaño"

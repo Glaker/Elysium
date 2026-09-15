@@ -1,6 +1,6 @@
-import { createBrowserRouter, Navigate } from 'react-router';
+import { createBrowserRouter } from 'react-router';
 
-import { RutaProtegida } from '@/components/RutaProtegida';
+import { RutaProductora, RutaProtegida } from '@/components/RutaProtegida';
 import { AdminLayout } from '@/components/layout/AdminLayout';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { InsumoFormPage } from '@/features/insumos/InsumoFormPage';
@@ -14,6 +14,7 @@ import { PersonasPage } from '@/features/deudores/PersonasPage';
 import { LoteNuevoPage } from '@/features/lotes/LoteNuevoPage';
 import { LotePage } from '@/features/lotes/LotePage';
 import { LotesPage } from '@/features/lotes/LotesPage';
+import { InvitacionesPage } from '@/features/invitaciones/InvitacionesPage';
 import { LineasPage } from '@/features/productos/LineasPage';
 import { ProductoFormPage } from '@/features/productos/ProductoFormPage';
 import { ProductoPage } from '@/features/productos/ProductoPage';
@@ -21,6 +22,7 @@ import { ProductosPage as ProductosAdminPage } from '@/features/productos/Produc
 import { TamanoPage } from '@/features/productos/TamanoPage';
 import { CalculadoraPage } from '@/features/simulador/CalculadoraPage';
 import { SimuladorPage } from '@/features/simulador/SimuladorPage';
+import { SolicitudesPage } from '@/features/solicitudes/SolicitudesPage';
 import { MovimientosPage } from '@/features/stock/MovimientosPage';
 import { RecuentoPage } from '@/features/stock/RecuentoPage';
 import { RecuentosPage } from '@/features/stock/RecuentosPage';
@@ -31,6 +33,8 @@ import { CuentasPage } from '@/features/ventas/CuentasPage';
 import { VentaNuevaPage } from '@/features/ventas/VentaNuevaPage';
 import { VentaPage } from '@/features/ventas/VentaPage';
 import { VentasPage } from '@/features/ventas/VentasPage';
+import { InicioPage as InicioAdminPage } from '@/features/inicio/InicioPage';
+import { InicioPage } from '@/pages/InicioPage';
 import { InvitacionPage } from '@/pages/InvitacionPage';
 import { LoginPage } from '@/pages/LoginPage';
 import { MateriaPrimaPage } from '@/pages/MateriaPrimaPage';
@@ -47,8 +51,12 @@ export const router = createBrowserRouter([
         path: '/',
         element: <AppLayout />,
         children: [
-          { index: true, element: <ProductosPage /> },
-          { path: 'materia-prima', element: <MateriaPrimaPage /> },
+          { index: true, element: <InicioPage /> },
+          { path: 'productos', element: <ProductosPage /> },
+          {
+            element: <RutaProductora />,
+            children: [{ path: 'materia-prima', element: <MateriaPrimaPage /> }],
+          },
         ],
       },
     ],
@@ -62,7 +70,7 @@ export const router = createBrowserRouter([
         path: '/admin',
         element: <AdminLayout />,
         children: [
-          { index: true, element: <Navigate to="/admin/insumos" replace /> },
+          { index: true, element: <InicioAdminPage /> },
           { path: 'insumos', element: <InsumosPage /> },
           { path: 'insumos/nuevo', element: <InsumoFormPage /> },
           { path: 'insumos/proveedores', element: <ProveedoresPage /> },
@@ -89,10 +97,12 @@ export const router = createBrowserRouter([
           { path: 'ventas', element: <VentasPage /> },
           { path: 'ventas/nueva', element: <VentaNuevaPage /> },
           { path: 'ventas/cuentas', element: <CuentasPage /> },
+          { path: 'ventas/solicitudes', element: <SolicitudesPage /> },
           { path: 'ventas/:id', element: <VentaPage /> },
           { path: 'deudores', element: <DeudoresPage /> },
-          { path: 'deudores/personas', element: <PersonasPage /> },
           { path: 'deudores/:id', element: <DeudorPage /> },
+          { path: 'personas', element: <PersonasPage /> },
+          { path: 'personas/invitaciones', element: <InvitacionesPage /> },
           { path: 'gastos', element: <GastosPage /> },
           { path: 'simulador', element: <SimuladorPage /> },
           { path: 'simulador/calculadora', element: <CalculadoraPage /> },

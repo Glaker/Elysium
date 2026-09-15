@@ -234,7 +234,7 @@ export function InsumoPage() {
         </Alert>
       )}
 
-      <Paper withBorder p="md" bg="noche.8">
+      <Paper withBorder p="md" bg="noche.6">
         <SimpleGrid cols={{ base: 2, md: 4 }} spacing="lg">
           <Dato etiqueta="Precio vigente">{i ? <PrecioVigente insumo={i} /> : null}</Dato>
           <Dato etiqueta="Última verificación">

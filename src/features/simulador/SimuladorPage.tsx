@@ -96,7 +96,7 @@ export function SimuladorPage() {
         </Button>
       }
     >
-      <Paper withBorder p="md" bg="noche.8">
+      <Paper withBorder p="md" bg="noche.6">
         <Group align="flex-end" gap="md" wrap="wrap">
           <Select
             label="Tamaño"
@@ -138,7 +138,7 @@ export function SimuladorPage() {
       ) : (
         <>
           {(faltan.datos?.length ?? 0) > 0 && (
-            <Paper withBorder p="md" bg="noche.8">
+            <Paper withBorder p="md" bg="noche.6">
               <Stack gap="sm">
                 <Group gap={8}>
                   <IconInfoCircle size={16} />
@@ -176,7 +176,7 @@ export function SimuladorPage() {
             </Alert>
           )}
 
-          <Paper withBorder p="md" bg="noche.8">
+          <Paper withBorder p="md" bg="noche.6">
             <Group justify="space-between" align="flex-start" wrap="wrap" gap="xl">
               <Stack gap="xs" style={{ flex: 1, minWidth: 260 }}>
                 <Text size="xs" c="dimmed" tt="uppercase" style={{ letterSpacing: 0.5 }}>

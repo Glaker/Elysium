@@ -197,7 +197,7 @@ export function ProductoPage() {
         </>
       }
     >
-      <Paper withBorder p="md" bg="noche.8">
+      <Paper withBorder p="md" bg="noche.6">
         <SimpleGrid cols={{ base: 2, md: 4 }} spacing="lg">
           <Dato etiqueta="Línea de negocio">
             {!p ? null : p.linea ? (

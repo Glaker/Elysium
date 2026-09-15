@@ -7,11 +7,13 @@ import {
   Stack,
   Switch,
   Text,
+  Tooltip,
   TextInput,
   Textarea,
 } from '@mantine/core';
-import { IconEdit, IconPlus } from '@tabler/icons-react';
+import { IconEdit, IconPlus, IconSend } from '@tabler/icons-react';
 import { useState } from 'react';
+import { Link, useNavigate } from 'react-router';
 
 import { BadgeEstado } from '@/components/ui/BadgeEstado';
 import { Pagina } from '@/components/ui/Pagina';
@@ -25,6 +27,7 @@ import { useFormulario } from '@/lib/useFormulario';
  * o no cuenta en la app — una deuda no espera a que alguien se registre.
  */
 export function PersonasPage() {
+  const navigate = useNavigate();
   const personas = useAsync(listarPersonas, []);
   const [editando, setEditando] = useState<Persona | null | undefined>(undefined);
 
@@ -89,11 +92,20 @@ export function PersonasPage() {
     <Pagina
       titulo="Personas"
       descripcion="Clientes, revendedoras y productoras. Los dos roles se acumulan: el mismo estudiante puede hacer las dos cosas."
-      volver={{ a: '/admin/deudores', texto: 'Volver a deudores' }}
       acciones={
-        <Button leftSection={<IconPlus size={15} />} onClick={() => setEditando(null)}>
-          Nueva persona
-        </Button>
+        <>
+          <Button
+            variant="default"
+            component={Link}
+            to="/admin/personas/invitaciones"
+            leftSection={<IconSend size={15} />}
+          >
+            Invitaciones
+          </Button>
+          <Button leftSection={<IconPlus size={15} />} onClick={() => setEditando(null)}>
+            Nueva persona
+          </Button>
+        </>
       }
     >
       {personas.error && (
@@ -125,14 +137,30 @@ export function PersonasPage() {
           ),
         }}
         acciones={(p) => (
-          <ActionIcon
-            variant="subtle"
-            color="gray"
-            aria-label={`Editar ${p.nombre}`}
-            onClick={() => setEditando(p)}
-          >
-            <IconEdit size={16} />
-          </ActionIcon>
+          <Group gap={2} wrap="nowrap" justify="flex-end">
+            {/* Invitar es lo único que le falta a una persona sin cuenta, y es
+                el punto donde se nota que falta: acá está el padrón. */}
+            {!p.tieneCuenta && p.activo && (
+              <Tooltip label="Invitar a la app">
+                <ActionIcon
+                  variant="subtle"
+                  color="gray"
+                  aria-label={`Invitar a ${p.nombre} a la app`}
+                  onClick={() => navigate(`/admin/personas/invitaciones?persona=${p.id}`)}
+                >
+                  <IconSend size={16} />
+                </ActionIcon>
+              </Tooltip>
+            )}
+            <ActionIcon
+              variant="subtle"
+              color="gray"
+              aria-label={`Editar ${p.nombre}`}
+              onClick={() => setEditando(p)}
+            >
+              <IconEdit size={16} />
+            </ActionIcon>
+          </Group>
         )}
       />
 

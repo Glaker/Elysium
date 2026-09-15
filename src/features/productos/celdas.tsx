@@ -116,7 +116,7 @@ export function CostoResumen({ d }: { d: Desglose | undefined }) {
           />
         </span>
       </HoverCard.Target>
-      <HoverCard.Dropdown bg="noche.8">
+      <HoverCard.Dropdown bg="noche.6">
         <DesgloseCosto d={d} />
       </HoverCard.Dropdown>
     </HoverCard>

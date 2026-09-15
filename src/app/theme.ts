@@ -46,21 +46,35 @@ const violeta: MantineColorsTuple = [
 ];
 
 /**
- * Los fondos de la app: negros con un tinte violeta muy desaturado.
- * `noche[8]`/`noche[9]` son la barra lateral; `noche[6]` es el fondo de una fila
- * seleccionada. El resto de la UI corre sobre la escala `dark` neutra de Mantine.
+ * El gris de toda la app: negro con un tinte violeta muy desaturado.
+ *
+ * **Es la escala `dark` de Mantine**, no una paleta más (ver `colors` abajo).
+ * Antes convivían dos grises —el neutro de Mantine para el fondo y este para
+ * las superficies— y el resultado era una pantalla sucia y, sobre todo, con la
+ * jerarquía al revés: las tarjetas (`noche[8]`) quedaban **más oscuras** que el
+ * fondo (`dark[7]`, #242424), así que se hundían en vez de levantarse.
+ *
+ * Los índices siguen la convención de Mantine, y el orden es el que importa:
+ *
+ *  - `[7]` es el fondo de la pantalla (`--mantine-color-body`).
+ *  - `[6]` es una superficie **arriba** del fondo: `Paper`, inputs, hover.
+ *  - `[5]` es la superficie alta: fila seleccionada, dropdown sobre superficie.
+ *  - `[4]` son los bordes (`--mantine-color-default-border`).
+ *  - `[8]`/`[9]` van para abajo: son el chrome —barra lateral y encabezado—,
+ *    que se hunde a propósito para que el contenido sea lo que flota.
+ *  - `[2]` es el texto secundario (`dimmed`) y `[0]` el texto principal.
  */
 const noche: MantineColorsTuple = [
-  '#c9c6d2',
-  '#a5a1b2',
-  '#807b92',
-  '#5f5a70',
-  '#464253',
-  '#332f3e',
-  '#2a2733',
-  '#1f1d27',
-  '#16141d',
-  '#100e16',
+  '#f1eff7',
+  '#cecad9',
+  '#a8a3b7',
+  '#847e93',
+  '#474155',
+  '#332e3f',
+  '#272231',
+  '#1d1a26',
+  '#17141e',
+  '#110f18',
 ];
 
 /** Ámbar: costo incompleto, precio vencido, fórmula que no suma 100. */
@@ -108,7 +122,9 @@ const exito: MantineColorsTuple = [
 export const theme = createTheme({
   primaryColor: 'cian',
   primaryShade: { light: 6, dark: 4 },
-  colors: { cian, violeta, noche, advertencia, error, exito },
+  // `dark: noche` es lo que hace que el gris de Mantine y el de la app sean
+  // el mismo: fondo, inputs, bordes, menús y `dimmed` salen todos de acá.
+  colors: { cian, violeta, noche, dark: noche, advertencia, error, exito },
 
   defaultRadius: 'sm',
   fontFamily:
@@ -143,8 +159,8 @@ export const theme = createTheme({
         verticalSpacing: 6,
         // La regla más importante del sistema: toda cifra en tabular.
         tabularNums: true,
-        borderColor: 'dark.6',
-        highlightOnHoverColor: 'noche.7',
+        borderColor: 'noche.5',
+        highlightOnHoverColor: 'noche.6',
       },
     },
     // Densidad compacta por defecto en todo lo que se carga a mano.

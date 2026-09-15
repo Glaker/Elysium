@@ -172,7 +172,7 @@ export function GastosPage() {
         </Alert>
       )}
 
-      <Paper withBorder p="md" bg="noche.8">
+      <Paper withBorder p="md" bg="noche.6">
         <Group justify="space-between" align="flex-end" wrap="wrap" gap="md">
           <Group gap="sm" align="flex-end">
             <TextInput

@@ -1,14 +1,5 @@
-import {
-  Alert,
-  Badge,
-  Button,
-  Card,
-  Group,
-  Skeleton,
-  Stack,
-  Text,
-  Title,
-} from '@mantine/core';
+import { Alert, Box, Group, Skeleton, Stack, Text, UnstyledButton } from '@mantine/core';
+import { IconCheck } from '@tabler/icons-react';
 import { useState } from 'react';
 
 import { useAuth } from '@/app/useAuth';
@@ -27,6 +18,14 @@ type Item = {
   completo: boolean;
 };
 
+/**
+ * El catálogo con el precio que le corresponde a quien mira.
+ *
+ * Son filas y no tarjetas: la pregunta es "cuánto sale cada uno", y una columna
+ * de precios alineados se compara de un vistazo, mientras que cinco tarjetas
+ * grises se leen de a una. El precio es el elemento tipográfico más fuerte de
+ * la fila, y "Pedir" va como botón fantasma para que cinco seguidos no griten.
+ */
 export function ProductosPage() {
   const { persona } = useAuth();
   const [pidiendo, setPidiendo] = useState<string | null>(null);
@@ -65,10 +64,15 @@ export function ProductosPage() {
   }
 
   if (cargando) {
+    // El esqueleto tiene la forma exacta de la lista cargada —la línea de arriba
+    // y filas de 36px con 15 de aire— para que al llegar los datos nada se mueva
+    // de lugar. Un esqueleto que no mide lo mismo que su contenido es un salto
+    // anunciado.
     return (
-      <Stack gap="sm">
-        {[0, 1, 2].map((i) => (
-          <Skeleton key={i} h={92} radius="md" />
+      <Stack gap={0}>
+        <Skeleton h={11} w={160} mb={10} radius="sm" />
+        {[0, 1, 2, 3].map((i) => (
+          <Skeleton key={i} h={36} my={15} radius="sm" />
         ))}
       </Stack>
     );
@@ -78,7 +82,7 @@ export function ProductosPage() {
     return (
       <Stack gap={4} py="xl" align="center">
         <Text fw={600}>Todavía no hay productos</Text>
-        <Text size="sm" c="dimmed" ta="center">
+        <Text fz="sm" c="var(--ely-texto-2)" ta="center">
           Cuando Johanna cargue el catálogo, lo vas a ver acá.
         </Text>
       </Stack>
@@ -86,63 +90,110 @@ export function ProductosPage() {
   }
 
   return (
-    <Stack gap="md">
-      <div>
-        <Title order={2} fz="h3">
-          Productos
-        </Title>
-        <Text size="sm" c="dimmed">
-          {datos[0]?.base === 'costo'
-            ? 'Precios de entrega para reventa.'
-            : 'Precios de venta al público.'}
-        </Text>
-      </div>
+    <Stack gap={0}>
+      <Text fz={11} c="var(--ely-texto-3)" pb={10}>
+        {datos[0]?.base === 'costo'
+          ? 'Tus precios de entrega para reventa.'
+          : 'Precios de venta al público.'}
+      </Text>
 
       {error && (
-        <Alert color="red" variant="light" title="No se pudo enviar el pedido">
+        <Alert color="error" variant="light" title="No se pudo enviar el pedido" mb="sm">
           {error}
         </Alert>
       )}
 
-      <Stack gap="sm">
-        {datos.map((item) => (
-          <Card key={item.tamano_id} withBorder={false} bg="dark.6">
-            <Group justify="space-between" align="flex-start" wrap="nowrap" gap="sm">
-              <Stack gap={2} style={{ minWidth: 0 }}>
-                <Text fw={600} size="md" lh={1.25}>
-                  {item.producto}
-                </Text>
-                <Text size="sm" c="dimmed">
-                  {item.tamano ?? `${item.magnitud} ${item.unidad}`}
-                </Text>
-              </Stack>
+      {datos.map((item, i) => {
+        const hayPrecio = item.completo && item.importe != null;
+        const yaPedido = pedido === item.tamano_id;
 
-              <Stack gap={6} align="flex-end">
-                {item.completo && item.importe != null ? (
-                  <Text fw={700} fz={22} c="cian.4" lh={1}>
-                    {plata(Number(item.importe))}
+        return (
+          <Group
+            key={item.tamano_id}
+            gap={14}
+            wrap="nowrap"
+            py={15}
+            style={{
+              borderTop: i === 0 ? undefined : '1px solid var(--ely-borde-tenue)',
+            }}
+          >
+            {/* El nombre es lo único que cede: el precio y el botón no se
+                encogen ni se parten en un teléfono angosto. */}
+            <Box style={{ flexGrow: 1, minWidth: 0 }}>
+              <Text
+                fz={15}
+                fw={600}
+                lh={1.25}
+                lineClamp={2}
+                style={{ letterSpacing: '-0.01em' }}
+              >
+                {item.producto}
+              </Text>
+              <Text fz={12} c="var(--ely-texto-2)" mt={2}>
+                {item.tamano ?? `${item.magnitud} ${item.unidad}`}
+              </Text>
+            </Box>
+
+            <Box ta="right" style={{ flexShrink: 0 }}>
+              {hayPrecio ? (
+                <Text className="display" fz={20} fw={600} c="cian.4">
+                  {plata(Number(item.importe))}
+                </Text>
+              ) : (
+                <>
+                  <Text className="display" fz={20} fw={600} c="var(--ely-texto-3)">
+                    —
                   </Text>
-                ) : (
-                  <Badge color="gray" variant="light" size="sm">
+                  <Text fz={11} c="advertencia.4" mt={1}>
                     Sin precio
-                  </Badge>
-                )}
-                <Button
-                  size="xs"
-                  variant={pedido === item.tamano_id ? 'light' : 'filled'}
-                  loading={pidiendo === item.tamano_id}
-                  disabled={pedido === item.tamano_id}
-                  onClick={() => pedir(item)}
-                >
-                  {pedido === item.tamano_id ? 'Pedido enviado' : 'Pedir'}
-                </Button>
-              </Stack>
-            </Group>
-          </Card>
-        ))}
-      </Stack>
+                  </Text>
+                </>
+              )}
+            </Box>
 
-      <Text size="xs" c="dimmed">
+            <UnstyledButton
+              disabled={!hayPrecio || yaPedido || pidiendo === item.tamano_id}
+              onClick={() => void pedir(item)}
+              px={13}
+              py={7}
+              style={{
+                borderRadius: 999,
+                whiteSpace: 'nowrap',
+                flexShrink: 0,
+                border: `1px solid ${
+                  yaPedido
+                    ? '#2b5a3f'
+                    : hayPrecio
+                      ? 'var(--ely-borde)'
+                      : 'var(--ely-borde-tenue)'
+                }`,
+                background: yaPedido ? '#14281d' : 'transparent',
+                opacity: pidiendo === item.tamano_id ? 0.5 : 1,
+              }}
+            >
+              <Group gap={6} wrap="nowrap">
+                {yaPedido && <IconCheck size={12} stroke={3} color="#79dcaf" />}
+                <Text
+                  fz={12}
+                  fw={600}
+                  c={yaPedido ? '#79dcaf' : hayPrecio ? '#cbc5d6' : 'var(--ely-texto-3)'}
+                >
+                  {yaPedido ? 'Pedido' : 'Pedir'}
+                </Text>
+              </Group>
+            </UnstyledButton>
+          </Group>
+        );
+      })}
+
+      <Text
+        fz={11}
+        c="var(--ely-texto-3)"
+        lh={1.5}
+        pt={14}
+        mt={4}
+        style={{ borderTop: '1px solid var(--ely-borde-tenue)' }}
+      >
         Pedir no confirma la venta ni aparta stock: le llega el aviso a Johanna y ella la
         carga.
       </Text>

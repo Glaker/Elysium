@@ -125,16 +125,6 @@ export function DeudoresPage() {
     <Pagina
       titulo="Deudores"
       descripcion="Quién debe y cuánto. Sale de restarle a cada venta lo que se le imputó: no se carga a mano."
-      acciones={
-        <Button
-          variant="default"
-          component={Link}
-          to="/admin/deudores/personas"
-          leftSection={<IconUsers size={15} />}
-        >
-          Personas
-        </Button>
-      }
     >
       {error && (
         <Alert
@@ -186,7 +176,7 @@ export function DeudoresPage() {
           accion: (
             <Button
               component={Link}
-              to="/admin/deudores/personas"
+              to="/admin/personas"
               leftSection={<IconUsers size={15} />}
             >
               Ir a personas

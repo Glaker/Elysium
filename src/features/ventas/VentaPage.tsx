@@ -311,7 +311,7 @@ export function VentaPage() {
         </Alert>
       )}
 
-      <Paper withBorder p="md" bg="noche.8">
+      <Paper withBorder p="md" bg="noche.6">
         <SimpleGrid cols={{ base: 2, md: 4 }} spacing="lg">
           <Dato etiqueta="Total">
             {v && <Numero valor={v.total} formato={(n) => importe(n, 'ARS')} fw={700} />}

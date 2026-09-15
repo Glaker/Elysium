@@ -4,7 +4,7 @@
 > `src/app/theme.ts` y `src/components/ui/`.
 > El área de **insumos y precios** (`src/features/insumos/`) es la implementación
 > de referencia: si algo de acá no queda claro, mirá cómo se usa ahí.
-> **Última actualización:** 2026-09-12
+> **Última actualización:** 2026-09-14
 
 ---
 
@@ -25,15 +25,31 @@ Las dos apps comparten el theme y el color de acento, y nada más.
 Todo sale del theme. **Ninguna pantalla escribe un color literal**, ni un
 `#hex` ni `color="yellow"`.
 
-| Nombre en el theme | Qué es                   | Dónde va                                                                    |
-| ------------------ | ------------------------ | --------------------------------------------------------------------------- |
-| `cian` (primario)  | El único color de acción | Botones primarios, enlaces, foco.                                           |
-| `violeta`          | Identidad                | Badge de "Administración", ítem activo de la barra lateral. Nunca un botón. |
-| `noche`            | Fondos                   | Barra lateral (`noche.8`), fila seleccionada, hover (`noche.7`).            |
-| `advertencia`      | Ámbar                    | Costo incompleto, precio vencido a 30 días, fórmula que no suma 100.        |
-| `error`            | Rojo                     | Stock negativo, ciclo en la composición.                                    |
-| `exito`            | Verde                    | Confirmación puntual de una acción. **Nunca un estado permanente.**         |
-| `gray` / `dark`    | Grises                   | Todo lo demás.                                                              |
+| Nombre en el theme | Qué es                   | Dónde va                                                                                              |
+| ------------------ | ------------------------ | ----------------------------------------------------------------------------------------------------- |
+| `cian` (primario)  | El único color de acción | Botones primarios, enlaces, foco.                                                                     |
+| `violeta`          | Identidad                | Badge de "Administración", ítem activo de la barra lateral. Nunca un botón.                           |
+| `noche`            | Todo el gris de la app   | **Es la escala `dark` de Mantine** (`colors: { dark: noche }`): fondo, superficies, bordes, `dimmed`. |
+| `advertencia`      | Ámbar                    | Costo incompleto, precio vencido a 30 días, fórmula que no suma 100.                                  |
+| `error`            | Rojo                     | Stock negativo, ciclo en la composición.                                                              |
+| `exito`            | Verde                    | Confirmación puntual de una acción. **Nunca un estado permanente.**                                   |
+| `gray` / `dark`    | Grises                   | `dark` **es** `noche`; `gray` solo en badges que clasifican.                                          |
+
+**La luz sube hacia el contenido.** El orden de los escalones no es decorativo:
+
+| Escalón             | Valor                 | Qué es                                            |
+| ------------------- | --------------------- | ------------------------------------------------- |
+| `noche.9`/`noche.8` | `#110f18` / `#17141e` | El chrome: encabezado y barra lateral. Se hunde.  |
+| `noche.7`           | `#1d1a26`             | El fondo de la pantalla (`--mantine-color-body`). |
+| `noche.6`           | `#272231`             | Superficie: `Paper`, inputs, hover de fila.       |
+| `noche.5`           | `#332e3f`             | Superficie alta y borde de tabla.                 |
+| `noche.4`           | `#474155`             | Bordes.                                           |
+| `noche.2`           | `#a8a3b7`             | Texto secundario (`dimmed`).                      |
+| `noche.0`           | `#f1eff7`             | Texto principal.                                  |
+
+Una tarjeta **nunca** va más oscura que el fondo: cuando lo estuvo —superficies
+en `noche.8` sobre el `dark.7` neutro de Mantine— la pantalla entera se leía
+apagada y sucia, porque además convivían dos grises, uno violáceo y uno neutro.
 
 Reglas que no se negocian:
 
@@ -212,15 +228,34 @@ del campo (`75 g`, `$ 25.299`), no como texto al lado.
 
 ## 7. Navegación
 
-Barra lateral fija con las ocho áreas. Colapsa a íconos abajo de 1080px.
+Barra lateral fija con **Inicio** arriba y las nueve áreas debajo, en cuatro
+grupos rotulados: **Manejo** (stock, ventas), **Producción** (insumos,
+productos, lotes), **Caja** (gastos, deudores, simulador) y **Usuarios**
+(personas). El orden es el del día: arriba lo que se toca todos los días, abajo
+el padrón, que se abre cuando entra alguien nuevo. Cada rótulo va en mayúsculas
+chicas con un filete debajo —el mismo recurso del resto del admin— y no una caja
+más adentro de una barra que ya tiene su borde. Colapsa a íconos abajo de
+1080px, donde del rótulo queda solo la línea.
 
 Mientras hubo áreas sin construir quedaron visibles y deshabilitadas, para que
-se viera el mapa completo del sistema. Ya no hace falta: están las ocho.
+se viera el mapa completo del sistema. Ya no hace falta: están las nueve.
+
+**Deudores y Personas son dos áreas, no una.** El padrón es el maestro que usan
+ventas, pedidos e invitaciones; la deuda es un saldo calculado. Tenerlo colgando
+de deudores obligaba a pasar por una pantalla de saldos para dar de alta a
+alguien que todavía no debe nada.
 
 **Cada área es una ruta, y cada subsección también.** No hay tabs anidados en
 ningún lado: proveedores es `/admin/insumos/proveedores`, no una pestaña dentro
 de insumos. La ficha de un insumo es `/admin/insumos/:id`, y su edición es otra
 ruta más.
+
+**Una sola marca en la barra: los pedidos sin responder**, en ámbar, sobre
+Ventas. Es la única cifra que entra sola a la app —la carga otra persona desde su
+teléfono— y sin contarla la bandeja sería una pantalla que hay que acordarse de
+abrir. Va en ámbar y no en cian porque es algo que espera respuesta, no un botón.
+Si aparece una segunda marca, la primera deja de significar algo: el criterio
+para agregarla es que el dato llegue sin que Johanna lo haya pedido.
 
 `<Pagina>` es el encabezado común: título, descripción, link de vuelta y
 acciones a la derecha.

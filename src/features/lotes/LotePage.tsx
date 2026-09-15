@@ -310,7 +310,7 @@ export function LotePage() {
         </Alert>
       )}
 
-      <Paper withBorder p="md" bg="noche.8">
+      <Paper withBorder p="md" bg="noche.6">
         <SimpleGrid cols={{ base: 2, md: 5 }} spacing="lg">
           <Dato etiqueta="Variante">
             {!l ? null : l.destino === 'mp' ? (

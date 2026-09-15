@@ -30,3 +30,7 @@ dist-ssr
 
 # Vercel
 .vercel
+
+# Fuentes del canvas de diseño (artboards + el HTML publicado, ~2 MB).
+# Las decisiones que salieron de ahí viven en docs/DISENIO-USUARIO.md.
+.design/

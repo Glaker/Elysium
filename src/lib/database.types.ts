@@ -1863,6 +1863,14 @@ export type Database = {
     Functions: {
       aceptar_invitacion: { Args: { p_token: string }; Returns: string };
       anular_venta: { Args: { p_venta_id: string }; Returns: number };
+      aprobar_solicitud_como_venta: {
+        Args: {
+          p_fecha?: string;
+          p_solicitud_id: string;
+          p_tipo?: Database['public']['Enums']['tipo_venta'];
+        };
+        Returns: string;
+      };
       calcular_insumos: {
         Args: {
           p_merma_pct?: number;
@@ -1954,6 +1962,31 @@ export type Database = {
           faltantes: string[];
         }[];
       };
+      crear_invitacion: {
+        Args: {
+          p_dias?: number;
+          p_email?: string;
+          p_persona_id?: string;
+          p_rol?: Database['public']['Enums']['rol_usuario'];
+        };
+        Returns: {
+          creada_en: string;
+          creada_por: string | null;
+          email: string | null;
+          expira_en: string | null;
+          id: string;
+          persona_id: string | null;
+          rol: Database['public']['Enums']['rol_usuario'];
+          token: string;
+          usada_en: string | null;
+        };
+        SetofOptions: {
+          from: '*';
+          to: 'invitaciones';
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
       es_admin: { Args: never; Returns: boolean };
       factor_unidad: {
         Args: { p_unidad: Database['public']['Enums']['unidad_insumo'] };
@@ -2001,6 +2034,13 @@ export type Database = {
           p_lote_id: string;
           p_resultado: Database['public']['Enums']['resultado_lote'];
           p_unidades_obtenidas: number;
+        };
+        Returns: undefined;
+      };
+      resolver_solicitud: {
+        Args: {
+          p_estado: Database['public']['Enums']['estado_solicitud'];
+          p_solicitud_id: string;
         };
         Returns: undefined;
       };

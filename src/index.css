@@ -19,3 +19,98 @@ input[inputmode='numeric'],
 input[inputmode='decimal'] {
   font-variant-numeric: tabular-nums;
 }
+
+/*
+ * ---------------------------------------------------------------------------
+ * El front del usuario: "noche eléctrica" (docs/DISENIO-USUARIO.md).
+ *
+ * Todo vive bajo `.usuario`, la clase del shell de AppLayout, para que el admin
+ * —que tiene su propio sistema, docs/DISENIO.md— no cambie ni un pixel. Pisar
+ * `--mantine-font-family` acá adentro alcanza para que también los componentes
+ * de Mantine (botones, inputs) tomen la tipografía nueva.
+ * ---------------------------------------------------------------------------
+ */
+.usuario {
+  --ely-fondo: #17141f;
+  --ely-superficie: #221d2d;
+  --ely-superficie-alta: #282235;
+  --ely-borde: #443a52;
+  --ely-borde-tenue: #2e2839;
+  --ely-texto: #f4f2f9;
+  --ely-texto-2: #aea8bd;
+  --ely-texto-3: #8d8799;
+  /* El violeta del logo, eléctrico. Es identidad y atmósfera; nunca una acción. */
+  --ely-violeta: #863bff;
+  --ely-display: 'Bricolage Grotesque', 'Instrument Sans', system-ui, sans-serif;
+
+  --mantine-font-family: 'Instrument Sans', system-ui, -apple-system, sans-serif;
+  background: var(--ely-fondo);
+  color: var(--ely-texto);
+  font-family: var(--mantine-font-family);
+}
+
+/* Cifras y títulos. Siempre tabular: una columna de precios tiene que alinear. */
+.usuario .display {
+  font-family: var(--ely-display);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.015em;
+}
+
+/* Rótulo de sección: chico, espaciado, en mayúsculas. */
+.usuario .rotulo {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ely-texto-3);
+}
+
+/*
+ * El halo violeta del fondo. Es lo único que queda del degradado: un solo foco
+ * de luz detrás del encabezado, no una superficie pintada.
+ */
+.usuario .halo {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(
+    circle,
+    rgba(134, 59, 255, 0.26) 0%,
+    rgba(134, 59, 255, 0) 70%
+  );
+}
+
+/*
+ * La pantalla de arranque. Nace invisible y recién a los 150ms se muestra: si
+ * los datos llegan antes, nunca aparece, y el splash no alcanza a parpadear.
+ * Después late suave, que es todo lo que hace falta para decir "esperá".
+ */
+.pantalla-carga {
+  opacity: 0;
+  animation:
+    carga-aparecer 0.25s ease-out 0.15s forwards,
+    carga-latir 1.8s ease-in-out 0.4s infinite;
+}
+
+@keyframes carga-aparecer {
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes carga-latir {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+/* Quien pidió menos movimiento ve la marca quieta, no una respiración. */
+@media (prefers-reduced-motion: reduce) {
+  .pantalla-carga {
+    animation: carga-aparecer 0.25s ease-out 0.15s forwards;
+  }
+}

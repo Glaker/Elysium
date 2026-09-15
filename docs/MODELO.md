@@ -43,6 +43,14 @@ Atraviesa todo el esquema y es la fuente de error más probable si se ignora.
 | `personas`     | Con quién hace negocio Elysium. `perfil_id` opcional.                  |
 | `invitaciones` | Alta por link (§10), no registro abierto.                              |
 
+El token de una invitación lo genera `crear_invitacion()` en la base y no el
+navegador: es la única credencial del alta, y dejarla del lado del cliente haría
+que la calidad del secreto dependa de qué navegador la pidió. Son dos uuid v4
+pegados —244 bits del mismo generador que ya firma todas las claves primarias—
+para no depender de `pgcrypto`. Una invitación **no tiene columna de estado**:
+"usada" y "vencida" se deducen de `usada_en` y `expira_en`, porque una fila que
+diga "pendiente" cuando ya venció es peor que no tener la columna.
+
 `personas` está separada de `perfiles` a propósito: un deudor puede no tener
 cuenta nunca, y una venta se puede cargar a nombre de alguien que no se registró.
 Si fueran una sola tabla habría que crear cuentas fantasma para poder registrar
@@ -262,7 +270,20 @@ una compra puntual puede ser a precio atípico, y actualizar la lista en silenci
 rompería el costo de todo.
 
 Una **solicitud no es una venta**: no reserva stock, es un aviso que reemplaza el
-WhatsApp (§11). Johanna después la aprueba y carga la venta.
+WhatsApp (§11). Johanna la atiende desde la bandeja de pedidos, y si es un pedido
+de producto, `aprobar_solicitud_como_venta()` la convierte en una venta **en
+borrador** —nunca en una confirmada— y marca el pedido como resuelto. Las tres
+escrituras van en una función y no en el cliente porque o pasan las tres o no
+pasa ninguna: una venta sin líneas y un pedido que dice "aprobado" sin nada atrás
+es peor que el error.
+
+Borrador y no confirmada por lo mismo que el pedido no reserva: entre que alguien
+pide y Johanna atiende pudo pasar cualquier cosa con el stock, y confirmar congela
+importes y descuenta mercadería. Esa decisión se toma mirando la venta.
+
+El tipo de venta que se propone sale de `personas.es_revendedor` —quien revende
+paga el costo (§2)— pero es solo un default: lo elige quien aprueba, porque el
+flujo es por transacción y no por ficha.
 
 ---
 
@@ -357,6 +378,12 @@ deja solicitar materia prima), `productos`, `tamanos`, `tamano_precios`,
 `solicitudes`, `solicitud_lineas` y `personas`, filtrados por
 `personas.perfil_id = auth.uid()`.
 
+Con una excepción: **pedir materia prima exige `es_productor`.** Pedir producto
+es comprar y no expone nada, así que queda abierto a cualquiera con cuenta; pedir
+materia prima viene con la receta adentro, y la receta es el activo del negocio.
+`es_productora()` —`SECURITY DEFINER` por lo mismo que `es_admin()`— es lo que
+mira la policy de `solicitudes`, y también la calculadora.
+
 Dos trampas técnicas que condicionan el SQL:
 
 1. **Todas las vistas se crean con `security_invoker = true`.** Una vista normal
@@ -373,8 +400,9 @@ Existen porque el RLS es **por fila** y estas necesidades son **por columna**:
 - `catalogo_para_usuario()` — devuelve **un** importe por tamaño, resuelto del
   lado del servidor según si la persona es revendedor (paga costo) o no (paga
   precio de venta). Nunca sale el desglose.
-- `calcular_insumos(tamano, unidades, variante, merma)` — la calculadora de §11.
-  Devuelve nombres y cantidades, **nunca precios ni costos**. `cantidad_necesaria`
+- `calcular_insumos(tamano, unidades, variante, merma)` — la calculadora de §11,
+  **solo para productoras y admin**. Devuelve nombres y cantidades, **nunca
+  precios ni costos**. `cantidad_necesaria`
   **incluye la merma esperada**, porque la calculadora existe para saber cuánto
   pedir: con la cantidad de fórmula pura y un 5% de pérdida, no alcanza para
   terminar el lote. Devuelve también `cantidad_formula` y `merma` por separado
@@ -383,6 +411,16 @@ Existen porque el RLS es **por fila** y estas necesidades son **por columna**:
 - `registrar_resultado_lote(...)` — un productor cierra su propio lote. Es
   función y no policy porque darle `SELECT` sobre `lotes` le abriría las columnas
   de costo congelado de esa misma fila.
+
+**DECISIÓN CERRADA (antes abierta): la receta es de quien produce.** La primera
+versión de `calcular_insumos` estaba otorgada a todo usuario autenticado, con la
+nota de que exponía las cantidades de la fórmula —de las que se deduce el
+porcentaje— y de que si se decidía cerrarla, se restringía el grant. Se cerró: la
+función levanta excepción para quien no sea productora ni admin, y falla con
+mensaje en vez de devolver cero filas, porque una lista vacía se lee como "este
+producto no tiene fórmula", que es otra respuesta. Esconder la pantalla sin
+cerrar la función habría sido seguridad de pantalla y no de datos: la API es
+pública.
 
 ---
 

@@ -98,7 +98,7 @@ export function Formulario({
           right={0}
           radius={0}
           withBorder
-          bg="noche.8"
+          bg="noche.6"
           py="xs"
           px="lg"
           style={{ zIndex: 20 }}

@@ -244,7 +244,7 @@ export function RecuentoPage() {
         </Alert>
       )}
 
-      <Paper withBorder p="md" bg="noche.8">
+      <Paper withBorder p="md" bg="noche.6">
         <SimpleGrid cols={{ base: 2, md: 4 }} spacing="lg">
           <Stack gap={2}>
             <Text size="xs" c="dimmed" tt="uppercase" style={{ letterSpacing: 0.5 }}>

@@ -56,6 +56,7 @@ docs/
   CONTEXT.md              El negocio: qué es Elysium y qué tiene que hacer la app
   MODELO.md               El modelo de datos y por qué está así
   DISENIO.md              El sistema de diseño del front de administración
+  DISENIO-USUARIO.md      El del front del usuario: "noche eléctrica", mobile-first
 public/                   Assets estáticos servidos tal cual
 src/
   app/                    Composición de la app: providers, router, theme
@@ -65,9 +66,11 @@ src/
     theme.ts              Theme de Mantine
   components/             UI compartida entre features
     ui/                   El sistema de diseño: Tabla, Numero, Formulario, …
-    layout/AppLayout.tsx  Shell del usuario normal (mobile-first)
-    layout/AdminLayout.tsx Shell del admin: barra lateral con las ocho áreas
+    Logo.tsx              La marca, servida desde public/logo-256.png
+    layout/AppLayout.tsx  Shell del usuario: columna en teléfono, barra lateral en pc
+    layout/AdminLayout.tsx Shell del admin: barra lateral agrupada + inicio
   features/               Módulos de dominio
+    inicio/               Resumen del admin: lo que espera respuesta
     insumos/              Insumos, precios, proveedores y MP intermedias
     productos/            Productos, tamaños, fórmulas y precios de venta
     lotes/                Producción: planificación, cierre y costo real
@@ -76,6 +79,8 @@ src/
     deudores/             Padrón de personas, deuda por persona y cobranza
     gastos/               Registro de gastos con resumen por tipo y período
     simulador/            Simulador de costos y calculadora de ingredientes
+    solicitudes/          Pedidos que entran desde la cuenta del usuario
+    invitaciones/         El link con el que alguien se crea la cuenta
   lib/                    Clientes, helpers y utilidades transversales
     supabase.ts           El cliente; database.types.ts son los tipos generados
   pages/                  Componentes de pantalla asociados a una ruta
@@ -136,7 +141,9 @@ Settings → Environment Variables del proyecto en Vercel.
 
 ## Estado
 
-El admin tiene sus ocho áreas construidas:
+El admin abre en un **Inicio** —pedidos sin responder, ventas en borrador, deuda
+del padrón y cómo viene el mes, cada cifra linkeada a la pantalla donde se
+toca— y tiene sus nueve áreas construidas:
 
 - **Insumos** — catálogo, precios con historial, proveedores y MP intermedias.
 - **Productos** — productos, tamaños, fórmulas con las dos variantes de marca y
@@ -146,16 +153,25 @@ El admin tiene sus ocho áreas construidas:
 - **Stock** — stock de productos por ubicación y de insumos, el libro de
   movimientos, traslados y recuentos físicos con ajuste por diferencia.
 - **Ventas** — los dos flujos (directa y entrega para reventa), borrador con
-  líneas, confirmación que congela importes y descuenta stock, y cuentas.
-- **Deudores** — el padrón de personas, quién debe cuánto, y los pagos con
-  imputación FIFO, corregible a mano.
+  líneas, confirmación que congela importes y descuenta stock, cuentas, y la
+  bandeja de **pedidos**: lo que la gente pide desde su cuenta, con la opción de
+  convertirlo en una venta en borrador de un click.
+- **Deudores** — quién debe cuánto y los pagos con imputación FIFO corregible a
+  mano.
+- **Personas** — el padrón de clientes, revendedoras y productoras, y las
+  **invitaciones**: el link con el que alguien se crea la cuenta, porque no hay
+  registro abierto (§10).
 - **Gastos** — registro con resumen por tipo y por período. Si el gasto es la
   compra de un insumo, entra al stock en el mismo acto sin pisar el precio de
   lista.
 - **Simulador** — costo de un tamaño con precios hipotéticos que no se guardan,
   y la calculadora de ingredientes contra el stock actual.
 
-El front del usuario normal muestra el catálogo con el precio que le corresponde
-a cada persona y el pedido de materia prima.
+El front del usuario normal tiene su propio sistema visual —“noche eléctrica”,
+documentado en `docs/DISENIO-USUARIO.md`— y muestra el catálogo con el precio que
+le corresponde a cada persona, lo que debe, y el pedido de materia prima. Los dos
+pedidos que puede hacer
+—producto y materia prima— aterrizan en la bandeja del admin, con la marca de
+cuántos esperan respuesta en la barra lateral.
 
 Todavía no hay tests.

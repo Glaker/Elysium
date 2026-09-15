@@ -295,7 +295,7 @@ export function TamanoPage() {
         </Alert>
       )}
 
-      <Paper withBorder p="md" bg="noche.8">
+      <Paper withBorder p="md" bg="noche.6">
         <Group justify="space-between" align="flex-start" wrap="wrap" gap="xl">
           <Stack gap="xs" style={{ flex: 1, minWidth: 260 }}>
             <Text size="xs" c="dimmed" tt="uppercase" style={{ letterSpacing: 0.5 }}>
