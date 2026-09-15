@@ -60,7 +60,7 @@ export function ProveedoresPage() {
     },
     {
       clave: 'link',
-      titulo: 'Link',
+      titulo: 'Sitio',
       orden: (p) => p.link,
       render: (p) =>
         p.link ? (
@@ -79,7 +79,7 @@ export function ProveedoresPage() {
             </Group>
           </Anchor>
         ) : (
-          <DatoIncompleto titulo="Sin link. §5 lo pide como requisito, no como extra." />
+          <DatoIncompleto titulo="Sin sitio propio. El link de dónde comprar vive en cada insumo." />
         ),
     },
     {
@@ -131,7 +131,7 @@ export function ProveedoresPage() {
         onFila={(p) => setEditando(p)}
         vacio={{
           titulo: 'Todavía no hay proveedores',
-          descripcion: 'Cargá uno para poder asociarle insumos y guardar su link.',
+          descripcion: 'Cargá uno para poder asociarle insumos.',
           accion: (
             <Button
               leftSection={<IconPlus size={15} />}
@@ -195,10 +195,15 @@ function ModalProveedor({
       : VACIO,
     (v) => ({
       nombre: v.nombre.trim() ? undefined : 'El proveedor necesita un nombre.',
-      // §5 pone el link como requisito explícito, no como un extra.
-      link: v.link.trim().startsWith('http')
-        ? undefined
-        : 'El link del proveedor es obligatorio. Pegá la URL completa.',
+      // §5 pedía el link como requisito, pero el padrón real lo desmiente: 9 de
+      // los 14 proveedores del Excel son vendedores de MercadoLibre sin sitio
+      // propio, y el link que sí existe es el del producto, no el del vendedor
+      // —ese vive en el insumo—. Exigirlo acá obligaba a inventar una URL para
+      // poder editar el nombre de un proveedor.
+      link:
+        !v.link.trim() || v.link.trim().startsWith('http')
+          ? undefined
+          : 'Si ponés un link, pegá la URL completa (con https://).',
     }),
   );
 
@@ -234,10 +239,9 @@ function ModalProveedor({
       <Stack gap="sm">
         <TextInput label="Nombre" withAsterisk {...f.texto('nombre')} />
         <TextInput
-          label="Link"
-          description="La página donde se chequea el precio. Es requisito."
+          label="Sitio"
+          description="La página del proveedor, si tiene. El link de dónde comprar cada cosa va en el insumo."
           placeholder="https://…"
-          withAsterisk
           {...f.texto('link')}
         />
         <TextInput

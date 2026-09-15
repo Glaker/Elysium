@@ -1,7 +1,15 @@
-import { Alert, Button, Group, Paper, SimpleGrid, Text } from '@mantine/core';
+import {
+  Alert,
+  Anchor,
+  Button,
+  Group,
+  Paper,
+  SimpleGrid,
+  Stack,
+  Text,
+} from '@mantine/core';
 import {
   IconAlertTriangle,
-  IconArrowRight,
   IconBuildingFactory2,
   IconPlus,
   IconReceipt2,
@@ -102,14 +110,18 @@ export function InicioPage() {
 
       <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="md">
         {tarjetas.map((t) => (
+          // `c` y `td` no son decoración: la tarjeta es un `<a>`, y un link sin
+          // color propio toma el del navegador — que en esquema oscuro pinta lo
+          // ya visitado de violeta y ensuciaba las cuatro cifras.
           <Paper
             key={t.rotulo}
             withBorder
             p="md"
-            bg="noche.6"
+            c="var(--mantine-color-text)"
+            td="none"
             component={Link}
             to={t.a}
-            style={{ textDecoration: 'none' }}
+            className="tarjeta-link"
           >
             <Text size="xs" c="dimmed">
               {t.rotulo}
@@ -124,43 +136,33 @@ export function InicioPage() {
         ))}
       </SimpleGrid>
 
-      <Paper withBorder p="md" bg="noche.6">
-        <Group justify="space-between" wrap="wrap" gap="sm">
-          <Group gap="xs" wrap="nowrap">
-            <IconUsersGroup size={17} />
-            <Text size="sm" c="dimmed">
-              ¿Se registró alguien nuevo? Aparece solo en el padrón: ahí le das su rol.
-            </Text>
-          </Group>
-          <Button
-            variant="subtle"
-            component={Link}
-            to="/admin/personas"
-            rightSection={<IconArrowRight size={15} />}
-          >
-            Ir a personas
-          </Button>
+      {/*
+        Dos apuntes, no dos tarjetas: no son datos de hoy, son cosas que conviene
+        saber una vez. Con recuadro pesaban igual que las cuatro cifras de arriba
+        y llenaban media pantalla para decir algo que se lee en cinco segundos.
+      */}
+      <Stack gap={8} mt={4}>
+        <Group gap={8} wrap="nowrap">
+          <IconUsersGroup size={15} color="var(--mantine-color-dimmed)" />
+          <Text size="xs" c="dimmed">
+            ¿Se registró alguien nuevo? Aparece solo en{' '}
+            <Anchor component={Link} to="/admin/personas" size="xs" inherit c="cian.4">
+              Personas
+            </Anchor>
+            : ahí le das su rol.
+          </Text>
         </Group>
-      </Paper>
-
-      <Paper withBorder p="md" bg="noche.6">
-        <Group justify="space-between" wrap="wrap" gap="sm">
-          <Group gap="xs" wrap="nowrap">
-            <IconReceipt2 size={17} />
-            <Text size="sm" c="dimmed">
-              Un gasto que es la compra de un insumo entra al stock en el mismo acto.
-            </Text>
-          </Group>
-          <Button
-            variant="subtle"
-            component={Link}
-            to="/admin/gastos"
-            rightSection={<IconArrowRight size={15} />}
-          >
-            Ir a gastos
-          </Button>
+        <Group gap={8} wrap="nowrap">
+          <IconReceipt2 size={15} color="var(--mantine-color-dimmed)" />
+          <Text size="xs" c="dimmed">
+            Un{' '}
+            <Anchor component={Link} to="/admin/gastos" size="xs" inherit c="cian.4">
+              gasto
+            </Anchor>{' '}
+            que es la compra de un insumo entra al stock en el mismo acto.
+          </Text>
         </Group>
-      </Paper>
+      </Stack>
     </Pagina>
   );
 }

@@ -51,12 +51,25 @@ Una tarjeta **nunca** va más oscura que el fondo: cuando lo estuvo —superfici
 en `noche.8` sobre el `dark.7` neutro de Mantine— la pantalla entera se leía
 apagada y sucia, porque además convivían dos grises, uno violáceo y uno neutro.
 
+**El relleno claro lleva texto oscuro.** El cian de acción es un color claro:
+blanco encima da 1,9:1, y un botón primario terminaba leyéndose peor que el texto
+gris que tiene al lado. El theme usa `autoContrast` con umbral 0.3, así que
+Mantine mide la luminancia de cada relleno y elige — cian, ámbar y verde quedan
+con texto oscuro (9:1 o más) y cualquier relleno oscuro sigue con texto claro. El
+"negro" de ese texto es `#110f18`, el escalón más oscuro de `noche`: no hay tinta
+pura en ningún lado de la app.
+
 Reglas que no se negocian:
 
 - **Cian es acción, violeta es identidad.** El violeta sobre fondo oscuro
   contrasta peor y está más cerca de los estados semánticos; por eso el que se
   clickea es el cian.
-- **Sin degradados en la UI.** Quedan para el logo y el login.
+- **Un solo degradado en la UI**, y es atmósfera, no superficie: el violeta del
+  logo subiendo desde el pie de la barra lateral y apagándose antes de la mitad
+  (`.nav-admin`). Sube y no baja porque abajo es donde la barra no tiene nada, y
+  ahí el color no le compite a ningún ítem. Todo lo demás —ítems, estados, tarjetas, badges— es color plano; un degradado que
+  además tiene que contrastar con texto es un degradado que va a fallar en una de
+  sus puntas.
 - **Fuera de esos tres estados, nada lleva color.** Un badge que clasifica
   (tipo de insumo, "Producido", "Inactivo") va en gris. Si todo tiene color,
   el color no dice nada.
@@ -228,11 +241,17 @@ del campo (`75 g`, `$ 25.299`), no como texto al lado.
 
 ## 7. Navegación
 
-Barra lateral fija con **Inicio** arriba y las nueve áreas debajo, en cuatro
-grupos rotulados: **Manejo** (stock, ventas), **Producción** (insumos,
-productos, lotes), **Caja** (gastos, deudores, simulador) y **Usuarios**
-(personas). El orden es el del día: arriba lo que se toca todos los días, abajo
-el padrón, que se abre cuando entra alguien nuevo. Cada rótulo va en mayúsculas
+Barra lateral fija con **Inicio** arriba y las áreas debajo, en cuatro grupos
+rotulados: **Producción** (insumos, productos, lotes), **Stock** (insumos,
+productos), **Caja** (ventas, gastos, deudores, simulador) y **Usuarios**
+(personas).
+
+El orden es el de la cabeza con la que se entra a cada una. Producción es qué
+existe y con qué se hace; Stock va justo debajo porque es lo mismo mirado de
+otra manera —y por eso repite los dos nombres: son las dos mitades del stock,
+cada una con su unidad y su libro—. Caja es todo lo que mueve plata, con ventas
+encabezando porque es de donde sale y gastos y deudores son sus consecuencias.
+Al final el padrón, que se abre cuando entra alguien nuevo, no a diario. Cada rótulo va en mayúsculas
 chicas con un filete debajo —el mismo recurso del resto del admin— y no una caja
 más adentro de una barra que ya tiene su borde. Colapsa a íconos abajo de
 1080px, donde del rótulo queda solo la línea.

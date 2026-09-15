@@ -112,7 +112,7 @@ export function MovimientosPage() {
     <Pagina
       titulo="Movimientos"
       descripcion="Todo lo que entró y salió, en orden. Nada de esto se puede editar ni borrar."
-      volver={{ a: '/admin/stock', texto: 'Volver a stock' }}
+      volver={{ a: '/admin/stock/productos', texto: 'Volver a stock de productos' }}
     >
       {error && (
         <Alert

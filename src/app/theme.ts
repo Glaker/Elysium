@@ -122,6 +122,23 @@ const exito: MantineColorsTuple = [
 export const theme = createTheme({
   primaryColor: 'cian',
   primaryShade: { light: 6, dark: 4 },
+
+  /**
+   * Texto oscuro sobre los rellenos claros.
+   *
+   * El cian de acción es un color claro: blanco encima daba 1,9:1 —ilegible por
+   * norma y, sobre todo, un botón que se lee peor que el texto gris que tiene al
+   * lado—. Con `autoContrast` Mantine mide la luminancia del relleno y elige; el
+   * umbral 0.3 es el que deja el cian con texto oscuro y cualquier relleno
+   * oscuro con texto claro.
+   *
+   * Y el "negro" del sistema no es negro: es el escalón más oscuro de `noche`,
+   * para que el texto de un botón cian no sea el único punto de tinta pura de la
+   * app. Sobre `cian.4` da 9,4:1.
+   */
+  autoContrast: true,
+  luminanceThreshold: 0.3,
+  black: '#110f18',
   // `dark: noche` es lo que hace que el gris de Mantine y el de la app sean
   // el mismo: fondo, inputs, bordes, menús y `dimmed` salen todos de acá.
   colors: { cian, violeta, noche, dark: noche, advertencia, error, exito },
@@ -140,10 +157,10 @@ export const theme = createTheme({
    */
   other: {
     /** Alto de la barra superior del admin. Es el offset del encabezado fijo. */
-    altoHeader: 48,
+    altoHeader: 54,
     /** Ancho de la barra lateral abierta / colapsada a íconos. */
-    anchoNav: 200,
-    anchoNavColapsada: 56,
+    anchoNav: 236,
+    anchoNavColapsada: 64,
     /** Padding vertical de una celda de tabla compacta. */
     filaCompacta: 5,
   },

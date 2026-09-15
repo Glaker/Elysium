@@ -104,7 +104,7 @@ export function RecuentosPage() {
     <Pagina
       titulo="Recuentos"
       descripcion="Contar lo que hay en el estante y dejar que la app calcule la diferencia."
-      volver={{ a: '/admin/stock', texto: 'Volver a stock' }}
+      volver={{ a: '/admin/stock/productos', texto: 'Volver a stock de productos' }}
       acciones={
         <Button leftSection={<IconPlus size={15} />} onClick={() => setCreando(true)}>
           Nuevo recuento

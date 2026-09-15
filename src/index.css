@@ -7,6 +7,57 @@ body,
 }
 
 /*
+ * Un link que envuelve contenido —una tarjeta, una fila entera— no lleva color
+ * de link: lleva el del texto que envuelve. Sin esto toma el del navegador, que
+ * en esquema oscuro pinta de violeta lo ya visitado, y una tarjeta con una cifra
+ * adentro terminaba lavanda la primera vez que se la clickeaba.
+ *
+ * `Anchor` de Mantine pone su color por clase, así que esto no lo pisa: los
+ * links que se ven como links siguen en cian.
+ */
+a {
+  color: inherit;
+}
+
+/*
+ * Tarjeta que además es un link. El hover es la única señal de que se puede
+ * tocar: sin él, cuatro recuadros quietos no se distinguen de un cartel.
+ */
+.tarjeta-link {
+  background: var(--mantine-color-noche-6);
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease;
+}
+
+.tarjeta-link:hover {
+  background: var(--mantine-color-noche-5);
+  border-color: var(--mantine-color-noche-3);
+}
+
+/*
+ * La barra lateral del admin: el violeta del logo subiendo desde abajo y
+ * apagándose antes de la mitad.
+ *
+ * Es el único degradado de la UI. Sube y no baja porque abajo es donde no hay
+ * nada —la barra termina en vacío después del último grupo— y ahí el color no
+ * le compite a ningún ítem; arriba, en cambio, caía justo sobre los primeros,
+ * que son los que más se miran. Va abajo de todo: los ítems, sus estados y el
+ * activo siguen siendo colores planos, y el degradado es lo bastante tenue como
+ * para no confundirse con la selección, que también es violeta.
+ */
+.nav-admin {
+  background:
+    linear-gradient(
+      0deg,
+      rgba(134, 59, 255, 0.16) 0%,
+      rgba(134, 59, 255, 0.06) 28%,
+      rgba(134, 59, 255, 0) 60%
+    ),
+    var(--mantine-color-noche-8);
+}
+
+/*
  * Números tabulares en toda cifra, sin excepción (docs/DISENIO.md §Tipografía).
  * Las tablas lo traen del theme (`Table.tabularNums`); esto cubre lo que se
  * escribe a mano: campos numéricos, fechas dentro de inputs y cualquier nodo

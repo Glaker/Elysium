@@ -1,5 +1,5 @@
 import { ActionIcon, Alert, Anchor, Button, Group, Text } from '@mantine/core';
-import { IconAdjustments, IconAlertTriangle, IconBoxSeam } from '@tabler/icons-react';
+import { IconAdjustments, IconAlertTriangle, IconHistory } from '@tabler/icons-react';
 import { useState } from 'react';
 import { Link } from 'react-router';
 
@@ -82,15 +82,14 @@ export function StockInsumosPage() {
     <Pagina
       titulo="Stock de insumos"
       descripcion="Cuánto hay de cada insumo, en la misma unidad en la que se escriben las fórmulas."
-      volver={{ a: '/admin/stock', texto: 'Volver a stock' }}
       acciones={
         <Button
           variant="default"
           component={Link}
-          to="/admin/stock"
-          leftSection={<IconBoxSeam size={15} />}
+          to="/admin/stock/movimientos"
+          leftSection={<IconHistory size={15} />}
         >
-          Productos
+          Movimientos
         </Button>
       }
     >

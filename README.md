@@ -114,6 +114,12 @@ Ojo con una diferencia: `db push` registra lo aplicado en
 `supabase_migrations.schema_migrations` y el script no. Si aplicás una migración
 por ahí, insertá su `version` a mano o el CLI va a querer volver a aplicarla.
 
+`supabase/carga_inicial.sql` es la carga del catálogo real de Johanna, extraída del Excel
+(proveedores, insumos con sus precios, productos con su tamaño y las diez fórmulas que
+cierran). No es una migración: es dato de arranque, se corre a mano una vez y es
+idempotente —compara por nombre, así que correrlo de nuevo no duplica ni pisa lo editado
+desde la app. Lo que quedó afuera y por qué está documentado en su encabezado.
+
 `supabase/seed.sql` tiene datos de prueba (el Shampoo Café real de `CONTEXT.md` §3.1 más
 artefactos sintéticos para los casos de borde) y **solo se aplica en local**, con
 `npx supabase db reset`. La base remota se deja vacía para que se carguen los datos reales.
@@ -155,8 +161,10 @@ toca— y tiene sus nueve áreas construidas:
   precios de venta.
 - **Lotes** — planificación del consumo desde la fórmula, cierre con congelado
   de costos y parámetros, y el costo unitario real de lo que efectivamente salió.
-- **Stock** — stock de productos por ubicación y de insumos, el libro de
-  movimientos, traslados y recuentos físicos con ajuste por diferencia.
+- **Stock** — dos áreas separadas, porque se miran por separado: el de productos
+  (por ubicación, con traslados y recuentos físicos con ajuste por diferencia) y
+  el de insumos (sin ubicaciones: lo que importa es si alcanza para el próximo
+  lote). El libro de movimientos es común a las dos.
 - **Ventas** — los dos flujos (directa y entrega para reventa), borrador con
   líneas, confirmación que congela importes y descuenta stock, cuentas, y la
   bandeja de **pedidos**: lo que la gente pide desde su cuenta, con la opción de

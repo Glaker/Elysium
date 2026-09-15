@@ -19,13 +19,7 @@ import {
   IconPower,
   type Icon,
 } from '@tabler/icons-react';
-import {
-  Link,
-  NavLink as RouterLink,
-  Outlet,
-  useLocation,
-  useNavigate,
-} from 'react-router';
+import { Link, Link as RouterLink, Outlet, useLocation, useNavigate } from 'react-router';
 
 import { useAuth } from '@/app/useAuth';
 import { BandaDeuda } from '@/components/BandaDeuda';
@@ -147,6 +141,10 @@ export function AppLayout() {
       component={RouterLink}
       to={s.valor}
       active={s.valor === seccion}
+      // Un `Link` pelado y la marca de página puesta a mano: el `NavLink` de
+      // react-router pone `aria-current` por prefijo, y Mantine lo pinta como
+      // activo —con `/` eso es "Inicio activo en todas las pantallas".
+      aria-current={s.valor === seccion ? 'page' : undefined}
       color="cian"
       variant="light"
       label={s.texto}

@@ -53,7 +53,7 @@ export function UbicacionesPage() {
     <Pagina
       titulo="Ubicaciones"
       descripcion="Dónde se guarda el producto terminado. El stock se lleva por ubicación."
-      volver={{ a: '/admin/stock', texto: 'Volver a stock' }}
+      volver={{ a: '/admin/stock/productos', texto: 'Volver a stock de productos' }}
       acciones={
         <Button leftSection={<IconPlus size={15} />} onClick={() => setEditando(null)}>
           Nueva ubicación

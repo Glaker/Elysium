@@ -5,7 +5,6 @@ import {
   IconArrowsExchange,
   IconClipboardList,
   IconDots,
-  IconFlask,
   IconHistory,
   IconMapPin,
 } from '@tabler/icons-react';
@@ -111,14 +110,6 @@ export function StockPage() {
       descripcion="La suma de los movimientos, no un número que se pisa. Para cambiarlo se registra un movimiento."
       acciones={
         <>
-          <Button
-            variant="default"
-            component={Link}
-            to="/admin/stock/insumos"
-            leftSection={<IconFlask size={15} />}
-          >
-            Insumos
-          </Button>
           <Button
             variant="default"
             component={Link}

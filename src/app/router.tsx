@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router';
+import { createBrowserRouter, Navigate } from 'react-router';
 
 import { RutaProductora, RutaProtegida } from '@/components/RutaProtegida';
 import { AdminLayout } from '@/components/layout/AdminLayout';
@@ -85,7 +85,11 @@ export const router = createBrowserRouter([
           { path: 'lotes', element: <LotesPage /> },
           { path: 'lotes/nuevo', element: <LoteNuevoPage /> },
           { path: 'lotes/:id', element: <LotePage /> },
-          { path: 'stock', element: <StockPage /> },
+          // Stock son dos áreas, no una con una subsección: insumos y productos
+          // se miran por separado. `/admin/stock` queda como atajo al de
+          // productos para no romper un link viejo.
+          { path: 'stock', element: <Navigate to="/admin/stock/productos" replace /> },
+          { path: 'stock/productos', element: <StockPage /> },
           { path: 'stock/insumos', element: <StockInsumosPage /> },
           { path: 'stock/movimientos', element: <MovimientosPage /> },
           { path: 'stock/ubicaciones', element: <UbicacionesPage /> },
