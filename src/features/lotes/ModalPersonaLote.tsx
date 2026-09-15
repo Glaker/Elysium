@@ -89,7 +89,7 @@ export function ModalPersonaLote({
             .filter((p) => p.activo || p.id === f.valores.personaId)
             .map((p) => ({
               value: p.id,
-              label: p.esProductor ? `${p.nombre} · produce` : p.nombre,
+              label: p.esProductor ? `${p.nombreCompleto} · produce` : p.nombreCompleto,
             }))}
           value={f.valores.personaId}
           onChange={(v) => f.set('personaId', v)}

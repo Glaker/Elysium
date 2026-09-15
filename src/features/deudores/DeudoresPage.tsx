@@ -168,11 +168,11 @@ export function DeudoresPage() {
           />
         }
         vacio={{
-          titulo: filtro === 'deben' ? 'Nadie debe nada' : 'Todavía no hay personas',
+          titulo: filtro === 'deben' ? 'Nadie debe nada' : 'Todavía no se registró nadie',
           descripcion:
             filtro === 'deben'
               ? 'Las deudas aparecen solas cuando se confirma una venta que no se cobró en el acto.'
-              : 'Cargá a quienes te compran o fabrican para poder registrarles ventas y pagos.',
+              : 'El padrón se llena solo: cada persona que se crea la cuenta aparece acá y ya se le pueden registrar ventas y pagos.',
           accion: (
             <Button
               component={Link}

@@ -66,7 +66,7 @@ export async function listarSolicitudes(): Promise<Solicitud[]> {
     supabase
       .from('solicitudes')
       .select(
-        'id, tipo, estado, fecha, persona_id, unidades_objetivo, tamano_objetivo_id, notas, resuelta_en, personas (nombre, es_revendedor), tamanos (nombre, magnitud, unidad, productos (nombre))',
+        'id, tipo, estado, fecha, persona_id, unidades_objetivo, tamano_objetivo_id, notas, resuelta_en, personas (nombre_completo, es_revendedor), tamanos (nombre, magnitud, unidad, productos (nombre))',
       )
       .order('fecha', { ascending: false })
       .order('creado_en', { ascending: false }),
@@ -90,7 +90,7 @@ export async function listarSolicitudes(): Promise<Solicitud[]> {
     tamano_objetivo_id: string | null;
     notas: string | null;
     resuelta_en: string | null;
-    personas: { nombre: string; es_revendedor: boolean } | null;
+    personas: { nombre_completo: string | null; es_revendedor: boolean } | null;
     tamanos: FilaTamano;
   }[];
 
@@ -123,7 +123,7 @@ export async function listarSolicitudes(): Promise<Solicitud[]> {
     estado: f.estado,
     fecha: f.fecha,
     personaId: f.persona_id,
-    persona: f.personas?.nombre ?? '—',
+    persona: f.personas?.nombre_completo ?? '—',
     esRevendedor: f.personas?.es_revendedor ?? false,
     tamanoObjetivoId: f.tamano_objetivo_id,
     tamanoObjetivo: f.tamano_objetivo_id ? etiqueta(f.tamanos) : null,

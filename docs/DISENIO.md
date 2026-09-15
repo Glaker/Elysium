@@ -241,7 +241,7 @@ Mientras hubo áreas sin construir quedaron visibles y deshabilitadas, para que
 se viera el mapa completo del sistema. Ya no hace falta: están las nueve.
 
 **Deudores y Personas son dos áreas, no una.** El padrón es el maestro que usan
-ventas, pedidos e invitaciones; la deuda es un saldo calculado. Tenerlo colgando
+ventas, pedidos y cuentas; la deuda es un saldo calculado. Tenerlo colgando
 de deudores obligaba a pasar por una pantalla de saldos para dar de alta a
 alguien que todavía no debe nada.
 

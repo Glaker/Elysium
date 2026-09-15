@@ -262,13 +262,13 @@ export function DeudorPage() {
     <Pagina
       titulo={
         <Group gap="sm">
-          {p?.nombre ?? '…'}
+          {p?.nombreCompleto ?? '…'}
           {p?.esRevendedor && <BadgeEstado>Revendedora</BadgeEstado>}
           {p?.esProductor && <BadgeEstado>Productora</BadgeEstado>}
           {p && !p.activo && <BadgeEstado>Inactiva</BadgeEstado>}
         </Group>
       }
-      descripcion={p?.contacto ?? undefined}
+      descripcion={p?.telefono ?? undefined}
       volver={{ a: '/admin/deudores', texto: 'Volver a deudores' }}
       acciones={
         <Button leftSection={<IconCash size={15} />} onClick={() => setPagando(true)}>
@@ -448,7 +448,7 @@ export function DeudorPage() {
       {p && pagando && (
         <ModalPago
           personaId={id}
-          nombre={p.nombre}
+          nombre={p.nombreCompleto}
           deuda={deuda}
           onClose={() => setPagando(false)}
           onGuardado={(resumen) => {

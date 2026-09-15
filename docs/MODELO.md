@@ -37,24 +37,51 @@ Atraviesa todo el esquema y es la fuente de error más probable si se ignora.
 
 ### Identidad
 
-| Tabla          | Qué es                                                                 |
-| -------------- | ---------------------------------------------------------------------- |
-| `perfiles`     | Una fila por cuenta. `id` = `auth.users.id`. El RLS lee el rol de acá. |
-| `personas`     | Con quién hace negocio Elysium. `perfil_id` opcional.                  |
-| `invitaciones` | Alta por link (§10), no registro abierto.                              |
+| Tabla      | Qué es                                                                 |
+| ---------- | ---------------------------------------------------------------------- |
+| `perfiles` | Una fila por cuenta. `id` = `auth.users.id`. El RLS lee el rol de acá. |
+| `personas` | Con quién hace negocio Elysium. `perfil_id` opcional.                  |
 
-El token de una invitación lo genera `crear_invitacion()` en la base y no el
-navegador: es la única credencial del alta, y dejarla del lado del cliente haría
-que la calidad del secreto dependa de qué navegador la pidió. Son dos uuid v4
-pegados —244 bits del mismo generador que ya firma todas las claves primarias—
-para no depender de `pgcrypto`. Una invitación **no tiene columna de estado**:
-"usada" y "vencida" se deducen de `usada_en` y `expira_en`, porque una fila que
-diga "pendiente" cuando ya venció es peor que no tener la columna.
+**El alta es abierta.** §10 pedía alta por link de invitación; se cambió la
+decisión y la tabla `invitaciones` ya no existe. El token no protegía nada que el
+rol no proteja mejor —una cuenta nueva es `usuario`, y un usuario ve su catálogo,
+su deuda y nada más— y a cambio costaba un ida y vuelta por WhatsApp cada vez.
+Lo que sí se controla es el rol: lo da un admin desde el padrón, después, con la
+persona a la vista (`cambiar_rol()`).
 
-`personas` está separada de `perfiles` a propósito: un deudor puede no tener
-cuenta nunca, y una venta se puede cargar a nombre de alguien que no se registró.
-Si fueran una sola tabla habría que crear cuentas fantasma para poder registrar
-una deuda. Todo lo comercial apunta a `personas`; solo el RLS mira `perfiles`.
+Quien se registra escribe su nombre, apellido y teléfono, y eso viaja como
+metadata del usuario de Auth. **El perfil y la persona los crea la base**, en un
+trigger sobre `auth.users` (`alta_de_cuenta()`): si el proyecto pide confirmar el
+email, entre el `signUp` y la primera sesión no hay nadie autenticado que pueda
+llamar a una función, y la cuenta quedaría existiendo sin perfil. Si ya había una
+persona con ese teléfono y sin cuenta, se vincula en vez de duplicarse — es el
+caso normal, alguien a quien Johanna ya le vendía y que recién ahora se registra;
+duplicarla partiría su deuda en dos fichas.
+
+`personas.nombre` es el nombre de pila y `apellido` va aparte; `nombre_completo`
+es una columna generada y es la que muestra toda la app, para que nadie concatene
+por su cuenta ni las dos puedan desincronizarse. El teléfono se llama `telefono`
+—era `contacto`, un texto libre que en los hechos siempre fue eso.
+
+**Los roles viven en dos lados y no es un descuido.** `perfiles.rol`
+(admin | usuario) es de la **cuenta** y lo lee el RLS; `es_revendedor` y
+`es_productor` son de la **persona**, describen el vínculo comercial y no dan
+ningún permiso.
+
+`personas` sigue separada de `perfiles` aunque hoy toda persona tenga cuenta:
+son dos cosas distintas —una es con quién se hace negocio y la otra con qué
+credencial entra— y todo lo comercial apunta a `personas` mientras que solo el
+RLS mira `perfiles`. Lo que cambió con el alta abierta es cómo nace una fila:
+**al padrón se entra registrándose, y solo así**. Ya no se cargan personas a
+mano, y el `INSERT` sobre `personas` no se lo permite a nadie: la única fila que
+entra es la que escribe `alta_de_cuenta()`. Dos caminos para crear a la misma
+persona es la forma conocida de terminar con su deuda partida en dos fichas.
+
+Consecuencia que conviene tener presente: **una deuda necesita una cuenta**. Una
+venta puede seguir no teniendo persona —la de mostrador, que no genera deuda—,
+pero para deberle plata a alguien ese alguien tiene que haberse registrado.
+Antes no era así, y el precio de que no lo fuera era un padrón lleno de fichas a
+medio cargar que después no matcheaban con quien se registraba.
 
 `personas.es_revendedor` y `personas.es_productor` son **acumulables**: el mismo
 estudiante puede fabricar lotes y además llevarse producto para revender, que es
@@ -430,18 +457,23 @@ Hay un **deadlock de instalación** que es consecuencia directa del diseño de R
 conviene tenerlo presente antes de desplegar en un proyecto nuevo:
 
 ```
-perfiles     INSERT -> requiere es_admin()
-es_admin()          -> lee perfiles, que en una base nueva está vacía -> false
-invitaciones INSERT -> requiere es_admin()
+perfiles UPDATE / cambiar_rol() -> requiere es_admin()
+es_admin()                      -> lee perfiles: en una base nueva, nadie es admin
 ```
 
-Alguien que se registre con Supabase Auth en una base recién migrada queda con sesión
-válida y sin perfil (la app le muestra "Cuenta sin activar"). No puede darse el rol de
-admin, y tampoco puede recibir una invitación, porque crear invitaciones también exige
-ser admin. **No hay camino desde adentro de la app.**
+Con el alta abierta, registrarse en una base recién migrada **sí** funciona: el trigger
+crea el perfil como `usuario` y la persona en el padrón. Lo que no hay es forma de
+ascender al primero, porque ascender requiere ya ser admin. **No hay camino desde adentro
+de la app**, y el primer admin se hace **fuera de banda**, una sola vez:
 
-Es deliberado —§10 pide alta por invitación, no registro abierto— pero significa que el
-primer admin se crea **fuera de banda**, una sola vez, con una conexión que saltea el RLS:
+```sql
+-- Después de registrarse por la app, con una conexión que saltea el RLS:
+update perfiles set rol = 'admin'
+where id = (select id from auth.users where email = '<email>');
+```
+
+Si se prefiere no pasar por la app —o el proyecto exige confirmar el email y no hay
+casilla a mano—, la cuenta se puede crear entera a mano, que es lo que hace `seed.sql`:
 
 ```sql
 -- npx supabase db query --linked -f primer_admin.sql
@@ -480,8 +512,12 @@ select '<nombre>', id from auth.users where email = '<email>';
 > `phone_change_token` y `reauthentication_token`. Verificado contra el proyecto real:
 > con `NULL` el login falla, con `''` funciona.
 
-A partir de ahí el flujo normal de §10 funciona solo: el admin crea invitaciones y el
-resto entra por link. `seed.sql` usa el mismo patrón para sus dos usuarios de prueba.
+Ojo: el trigger `alta_de_cuenta()` corre en ese `insert` también, así que el perfil y la
+persona ya van a existir — el `insert into perfiles` de abajo es `on conflict do nothing`
+en los hechos, y lo único que hace falta es el `update` del rol.
+
+A partir de ahí todo pasa dentro de la app: la gente se registra sola y el admin reparte
+roles desde el padrón. `seed.sql` usa el mismo patrón para sus dos usuarios de prueba.
 
 ---
 

@@ -371,57 +371,6 @@ export type Database = {
           },
         ];
       };
-      invitaciones: {
-        Row: {
-          creada_en: string;
-          creada_por: string | null;
-          email: string | null;
-          expira_en: string | null;
-          id: string;
-          persona_id: string | null;
-          rol: Database['public']['Enums']['rol_usuario'];
-          token: string;
-          usada_en: string | null;
-        };
-        Insert: {
-          creada_en?: string;
-          creada_por?: string | null;
-          email?: string | null;
-          expira_en?: string | null;
-          id?: string;
-          persona_id?: string | null;
-          rol?: Database['public']['Enums']['rol_usuario'];
-          token: string;
-          usada_en?: string | null;
-        };
-        Update: {
-          creada_en?: string;
-          creada_por?: string | null;
-          email?: string | null;
-          expira_en?: string | null;
-          id?: string;
-          persona_id?: string | null;
-          rol?: Database['public']['Enums']['rol_usuario'];
-          token?: string;
-          usada_en?: string | null;
-        };
-        Relationships: [
-          {
-            foreignKeyName: 'invitaciones_creada_por_fkey';
-            columns: ['creada_por'];
-            isOneToOne: false;
-            referencedRelation: 'perfiles';
-            referencedColumns: ['id'];
-          },
-          {
-            foreignKeyName: 'invitaciones_persona_id_fkey';
-            columns: ['persona_id'];
-            isOneToOne: false;
-            referencedRelation: 'personas';
-            referencedColumns: ['id'];
-          },
-        ];
-      };
       lineas_negocio: {
         Row: {
           activo: boolean;
@@ -1068,18 +1017,20 @@ export type Database = {
       personas: {
         Row: {
           activo: boolean;
-          contacto: string | null;
+          apellido: string | null;
           creado_en: string;
           es_productor: boolean;
           es_revendedor: boolean;
           id: string;
           nombre: string;
+          nombre_completo: string | null;
           notas: string | null;
           perfil_id: string | null;
+          telefono: string | null;
         };
         Insert: {
           activo?: boolean;
-          contacto?: string | null;
+          apellido?: string | null;
           creado_en?: string;
           es_productor?: boolean;
           es_revendedor?: boolean;
@@ -1087,10 +1038,11 @@ export type Database = {
           nombre: string;
           notas?: string | null;
           perfil_id?: string | null;
+          telefono?: string | null;
         };
         Update: {
           activo?: boolean;
-          contacto?: string | null;
+          apellido?: string | null;
           creado_en?: string;
           es_productor?: boolean;
           es_revendedor?: boolean;
@@ -1098,6 +1050,7 @@ export type Database = {
           nombre?: string;
           notas?: string | null;
           perfil_id?: string | null;
+          telefono?: string | null;
         };
         Relationships: [
           {
@@ -1861,7 +1814,6 @@ export type Database = {
       };
     };
     Functions: {
-      aceptar_invitacion: { Args: { p_token: string }; Returns: string };
       anular_venta: { Args: { p_venta_id: string }; Returns: number };
       aprobar_solicitud_como_venta: {
         Args: {
@@ -1962,30 +1914,9 @@ export type Database = {
           faltantes: string[];
         }[];
       };
-      crear_invitacion: {
-        Args: {
-          p_dias?: number;
-          p_email?: string;
-          p_persona_id?: string;
-          p_rol?: Database['public']['Enums']['rol_usuario'];
-        };
-        Returns: {
-          creada_en: string;
-          creada_por: string | null;
-          email: string | null;
-          expira_en: string | null;
-          id: string;
-          persona_id: string | null;
-          rol: Database['public']['Enums']['rol_usuario'];
-          token: string;
-          usada_en: string | null;
-        };
-        SetofOptions: {
-          from: '*';
-          to: 'invitaciones';
-          isOneToOne: true;
-          isSetofReturn: false;
-        };
+      cambiar_rol: {
+        Args: { p_persona_id: string; p_rol: Database['public']['Enums']['rol_usuario'] };
+        Returns: undefined;
       };
       es_admin: { Args: never; Returns: boolean };
       factor_unidad: {
@@ -2007,6 +1938,7 @@ export type Database = {
       };
       lote_planificar: { Args: { p_lote_id: string }; Returns: undefined };
       mi_rol: { Args: never; Returns: string };
+      solo_digitos: { Args: { p_texto: string }; Returns: string };
       parametro_valor: {
         Args: { p_clave: string; p_fecha?: string };
         Returns: number;

@@ -34,15 +34,17 @@ export function RutaProtegida({ rol }: { rol?: Rol }) {
     return <Navigate to="/entrar" state={{ desde: location.pathname }} replace />;
   }
 
-  // Sesión válida pero sin perfil: se registró y todavía no canjeó invitación.
+  // Sesión válida y sin perfil. Desde que el alta es abierta esto no debería
+  // pasar —el perfil nace con la cuenta, en la base— salvo que la cuenta sea
+  // anterior a ese cambio o que alguien la haya borrado a mano.
   if (!perfil) {
     return (
       <Center h="60vh" px="md">
         <Stack gap="xs" align="center" maw={380}>
-          <Title order={3}>Cuenta sin activar</Title>
+          <Title order={3}>Cuenta sin perfil</Title>
           <Text c="dimmed" size="sm" ta="center">
-            Tu cuenta existe pero todavía no tiene perfil. Necesitás abrir el link de
-            invitación que te pasó Johanna para activarla.
+            Tu cuenta existe pero no tiene perfil, así que no hay nada que mostrarte.
+            Avisale a Johanna: se arregla desde la administración.
           </Text>
         </Stack>
       </Center>

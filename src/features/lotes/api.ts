@@ -87,7 +87,7 @@ type FilaLote = {
   regalias_aplicado: number | null;
   responsable_persona_id: string | null;
   notas: string | null;
-  personas: { nombre: string } | null;
+  personas: { nombre_completo: string | null } | null;
   tamanos: {
     nombre: string | null;
     magnitud: number;
@@ -110,7 +110,7 @@ export async function listarLotes(): Promise<Lote[]> {
     supabase
       .from('lotes')
       .select(
-        'id, codigo, fecha, estado, resultado, variante, tamano_id, insumo_producido_id, unidades_planificadas, unidades_obtenidas, perdida_cantidad, merma_pct_aplicado, valor_hora_aplicado, regalias_aplicado, responsable_persona_id, notas, personas (nombre), tamanos (nombre, magnitud, unidad, productos (nombre)), insumos (nombre, unidad)',
+        'id, codigo, fecha, estado, resultado, variante, tamano_id, insumo_producido_id, unidades_planificadas, unidades_obtenidas, perdida_cantidad, merma_pct_aplicado, valor_hora_aplicado, regalias_aplicado, responsable_persona_id, notas, personas (nombre_completo), tamanos (nombre, magnitud, unidad, productos (nombre)), insumos (nombre, unidad)',
       )
       .order('fecha', { ascending: false })
       .order('creado_en', { ascending: false }),
@@ -149,7 +149,7 @@ export async function listarLotes(): Promise<Lote[]> {
       obtenidas: f.unidades_obtenidas,
       perdida: f.perdida_cantidad,
       responsableId: f.responsable_persona_id,
-      responsable: f.personas?.nombre ?? null,
+      responsable: f.personas?.nombre_completo ?? null,
       notas: f.notas,
       mermaAplicada: f.merma_pct_aplicado,
       valorHoraAplicado: f.valor_hora_aplicado,
@@ -294,7 +294,7 @@ export type PersonaDelLote = {
 export async function personasDelLote(loteId: string): Promise<PersonaDelLote[]> {
   const { data, error } = await supabase
     .from('lote_personas')
-    .select('id, persona_id, horas, importe_pagado, notas, personas (nombre)')
+    .select('id, persona_id, horas, importe_pagado, notas, personas (nombre_completo)')
     .eq('lote_id', loteId);
   if (error) throw new Error(error.message);
 
@@ -304,13 +304,13 @@ export async function personasDelLote(loteId: string): Promise<PersonaDelLote[]>
     horas: number | null;
     importe_pagado: number | null;
     notas: string | null;
-    personas: { nombre: string } | null;
+    personas: { nombre_completo: string | null } | null;
   }[];
 
   return filas.map((f) => ({
     id: f.id,
     personaId: f.persona_id,
-    nombre: f.personas?.nombre ?? '—',
+    nombre: f.personas?.nombre_completo ?? '—',
     horas: f.horas,
     importePagado: f.importe_pagado,
     notas: f.notas,

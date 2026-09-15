@@ -80,7 +80,6 @@ src/
     gastos/               Registro de gastos con resumen por tipo y período
     simulador/            Simulador de costos y calculadora de ingredientes
     solicitudes/          Pedidos que entran desde la cuenta del usuario
-    invitaciones/         El link con el que alguien se crea la cuenta
   lib/                    Clientes, helpers y utilidades transversales
     supabase.ts           El cliente; database.types.ts son los tipos generados
   pages/                  Componentes de pantalla asociados a una ruta
@@ -121,13 +120,19 @@ artefactos sintéticos para los casos de borde) y **solo se aplica en local**, c
 
 ### El primer admin
 
-En una base nueva **no hay forma de crear el primer admin desde la app**: crear un perfil
-y crear una invitación requieren ya ser admin, y `es_admin()` lee una tabla vacía. Es
-intencional (§10 pide alta por invitación, no registro abierto), pero implica un paso
-manual de instalación, una única vez. El procedimiento completo, con la trampa de las
-columnas de token de GoTrue, está en `docs/MODELO.md`, sección "Arranque: el primer admin".
+El alta es abierta: cualquiera se crea la cuenta desde la app y entra como `usuario`.
+Lo que **no** se puede hacer desde adentro en una base nueva es ascender al primero,
+porque cambiar un rol requiere ya ser admin y `es_admin()` lee una tabla vacía. Es un
+único paso manual de instalación:
 
-Después de eso, el admin invita al resto desde la app.
+```sql
+update perfiles set rol = 'admin'
+where id = (select id from auth.users where email = '<tu email>');
+```
+
+El procedimiento completo —incluida la variante de crear la cuenta entera a mano, con la
+trampa de las columnas de token de GoTrue— está en `docs/MODELO.md`, sección "Arranque:
+el primer admin". Después de eso, los roles se reparten desde el padrón, en Personas.
 
 ## Deploy en Vercel
 
@@ -158,9 +163,9 @@ toca— y tiene sus nueve áreas construidas:
   convertirlo en una venta en borrador de un click.
 - **Deudores** — quién debe cuánto y los pagos con imputación FIFO corregible a
   mano.
-- **Personas** — el padrón de clientes, revendedoras y productoras, y las
-  **invitaciones**: el link con el que alguien se crea la cuenta, porque no hay
-  registro abierto (§10).
+- **Personas** — el padrón de clientes, revendedoras y productoras, y el reparto
+  de **roles**: el alta es abierta (cualquiera se crea la cuenta y entra como
+  usuario) y acá es donde un admin decide quién es qué.
 - **Gastos** — registro con resumen por tipo y por período. Si el gasto es la
   compra de un insumo, entra al stock en el mismo acto sin pisar el precio de
   lista.

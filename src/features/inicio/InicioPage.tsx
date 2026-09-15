@@ -129,7 +129,7 @@ export function InicioPage() {
           <Group gap="xs" wrap="nowrap">
             <IconUsersGroup size={17} />
             <Text size="sm" c="dimmed">
-              ¿Entró alguien nuevo? Dalo de alta en el padrón e invitalo a su cuenta.
+              ¿Se registró alguien nuevo? Aparece solo en el padrón: ahí le das su rol.
             </Text>
           </Group>
           <Button

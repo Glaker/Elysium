@@ -241,7 +241,7 @@ export function LoteNuevoPage() {
               .filter((p) => p.activo || p.id === f.valores.responsableId)
               .map((p) => ({
                 value: p.id,
-                label: p.esProductor ? `${p.nombre} · produce` : p.nombre,
+                label: p.esProductor ? `${p.nombreCompleto} · produce` : p.nombreCompleto,
               }))}
             value={f.valores.responsableId}
             onChange={(v) => f.set('responsableId', v)}

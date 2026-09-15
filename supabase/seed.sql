@@ -29,12 +29,15 @@ insert into auth.users (
 select '00000000-0000-0000-0000-000000000000'::uuid, v.id, 'authenticated', 'authenticated',
        v.email, extensions.crypt('Elysium-Test-2026!', extensions.gen_salt('bf')),
        now(), now(), now(),
-       '{"provider":"email","providers":["email"]}'::jsonb, '{}'::jsonb,
+       '{"provider":"email","providers":["email"]}'::jsonb,
+       jsonb_build_object('nombre', v.nombre, 'apellido', v.apellido, 'telefono', v.telefono),
        '', '', '', '', '', '', '', ''
 from (values
-  ('11111111-1111-4111-8111-111111111111'::uuid, 'admin.test@elysium.dev'),
-  ('22222222-2222-4222-8222-222222222222'::uuid, 'usuario.test@elysium.dev')
-) v(id, email)
+  ('11111111-1111-4111-8111-111111111111'::uuid, 'admin.test@elysium.dev',
+   'Johanna', 'Admin',      '11 5555 0001'),
+  ('22222222-2222-4222-8222-222222222222'::uuid, 'usuario.test@elysium.dev',
+   'Sofia',   'Revendedora', '11 5555 0002')
+) v(id, email, nombre, apellido, telefono)
 on conflict (id) do nothing;
 
 insert into auth.identities (id, user_id, identity_data, provider, provider_id, last_sign_in_at, created_at, updated_at)
@@ -45,10 +48,11 @@ from auth.users u
 where u.email in ('admin.test@elysium.dev', 'usuario.test@elysium.dev')
 on conflict do nothing;
 
-insert into perfiles (id, nombre, rol) values
-  ('11111111-1111-4111-8111-111111111111', 'Admin de prueba',   'admin'),
-  ('22222222-2222-4222-8222-222222222222', 'Usuario de prueba', 'usuario')
-on conflict (id) do nothing;
+-- El perfil y la persona de cada uno ya los creó el trigger `alta_de_cuenta()`
+-- con la metadata de arriba: acá solo queda el rol, que ninguna cuenta nueva se
+-- da a sí misma.
+update perfiles set rol = 'admin'
+where id = '11111111-1111-4111-8111-111111111111';
 
 -- ------------------------------------------------------------- parámetros
 -- margen_pct sigue SIN valor a propósito: CONTEXT nunca lo cuantifica.
@@ -184,16 +188,16 @@ join insumos i on i.nombre = v.ins
 on conflict (tamano_id, insumo_id) do nothing;
 
 -- ------------------------------------------------------------------- personas
-insert into personas (nombre, perfil_id, es_revendedor, es_productor) values
-  ('Sofia Revendedora', '22222222-2222-4222-8222-222222222222', true, true),
-  ('Johanna',           '11111111-1111-4111-8111-111111111111', false, false)
-on conflict do nothing;
+-- Existen desde el alta; lo que falta son los dos roles de persona, que no se
+-- eligen al registrarse: los pone Johanna cuando sabe quién es quién.
+update personas set es_revendedor = true, es_productor = true
+where perfil_id = '22222222-2222-4222-8222-222222222222';
 
 -- --------------------------------------------------- lotes: los tres resultados
 insert into lotes (codigo, fecha, tamano_id, unidades_planificadas,
                    responsable_persona_id)
 select v.cod, date '2026-02-10', t.id, 200,
-       (select id from personas where nombre = 'Sofia Revendedora')
+       (select id from personas where nombre = 'Sofia')
 from tamanos t join productos p on p.id = t.producto_id and p.nombre = 'Shampoo Cafe'
 cross join (values ('L-OK'), ('L-DESC'), ('L-REPRO')) v(cod)
 on conflict (codigo) do nothing;
@@ -220,7 +224,7 @@ select recuento_confirmar(id) from recuentos where notas = 'Recuento fisico de p
 insert into ventas (tipo, fecha, persona_id, estado)
 select 'directa', v.f, p.id, 'borrador'
 from personas p, (values (date '2026-03-01'), (date '2026-03-10'), (date '2026-03-20')) v(f)
-where p.nombre = 'Sofia Revendedora';
+where p.nombre = 'Sofia';
 
 insert into venta_lineas (venta_id, tamano_id, cantidad)
 select v.id, t.id,
@@ -228,21 +232,21 @@ select v.id, t.id,
 from ventas v
 cross join tamanos t
 join productos p on p.id = t.producto_id and p.nombre = 'Shampoo Cafe'
-where v.persona_id = (select id from personas where nombre = 'Sofia Revendedora');
+where v.persona_id = (select id from personas where nombre = 'Sofia');
 
 select confirmar_venta(id) from ventas
-where persona_id = (select id from personas where nombre = 'Sofia Revendedora')
+where persona_id = (select id from personas where nombre = 'Sofia')
 order by fecha;
 
 -- Pago parcial: $15.000 sobre $27.000. FIFO cancela de la más vieja a la más nueva.
 insert into pagos (persona_id, fecha, monto)
-select id, date '2026-03-25', 15000 from personas where nombre = 'Sofia Revendedora';
+select id, date '2026-03-25', 15000 from personas where nombre = 'Sofia';
 select imputar_pago_fifo(id) from pagos where fecha = date '2026-03-25';
 
 -- Entrega para reventa impaga: da algo que mostrar en la banda de deuda.
 insert into ventas (tipo, fecha, persona_id, estado)
 select 'entrega_reventa', date '2026-04-02', id, 'borrador'
-from personas where nombre = 'Sofia Revendedora';
+from personas where nombre = 'Sofia';
 
 insert into venta_lineas (venta_id, tamano_id, cantidad)
 select v.id, t.id, 2

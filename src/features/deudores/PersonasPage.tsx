@@ -4,6 +4,7 @@ import {
   Button,
   Group,
   Modal,
+  Select,
   Stack,
   Switch,
   Text,
@@ -11,36 +12,57 @@ import {
   TextInput,
   Textarea,
 } from '@mantine/core';
-import { IconEdit, IconPlus, IconSend } from '@tabler/icons-react';
+import { IconEdit, IconShieldCog } from '@tabler/icons-react';
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router';
 
+import type { Rol } from '@/app/authContext';
+import { useAuth } from '@/app/useAuth';
 import { BadgeEstado } from '@/components/ui/BadgeEstado';
 import { Pagina } from '@/components/ui/Pagina';
 import { Tabla, type Columna } from '@/components/ui/Tabla';
-import { guardarPersona, listarPersonas, type Persona } from '@/features/deudores/api';
+import {
+  actualizarPersona,
+  cambiarRol,
+  listarPersonas,
+  type Persona,
+} from '@/features/deudores/api';
 import { useAsync } from '@/lib/useAsync';
 import { useFormulario } from '@/lib/useFormulario';
 
+const ETIQUETA_ROL: Record<Rol, string> = { admin: 'Admin', usuario: 'Usuario' };
+
 /**
- * El padrón: clientes, revendedoras, productoras. Una persona existe acá tenga
- * o no cuenta en la app — una deuda no espera a que alguien se registre.
+ * El padrón: clientes, revendedoras, productoras.
+ *
+ * **Acá no se da de alta a nadie.** Una persona entra al padrón registrándose:
+ * el alta es abierta y la ficha la crea la base junto con la cuenta. Lo que se
+ * hace en esta pantalla es lo que la base no puede saber sola — quién revende,
+ * quién fabrica, quién es admin— y corregir los datos que cargó la persona.
+ *
+ * El control no está entonces en la puerta sino acá, con la persona a la vista
+ * y después de saber quién es.
  */
 export function PersonasPage() {
-  const navigate = useNavigate();
+  const { perfil } = useAuth();
   const personas = useAsync(listarPersonas, []);
-  const [editando, setEditando] = useState<Persona | null | undefined>(undefined);
+  const [editando, setEditando] = useState<Persona | null>(null);
+  const [rolDe, setRolDe] = useState<Persona | null>(null);
 
   const columnas: Columna<Persona>[] = [
     {
       clave: 'nombre',
       titulo: 'Persona',
-      orden: (p) => p.nombre,
+      orden: (p) => p.nombreCompleto,
       render: (p) => (
         <Group gap="xs" wrap="nowrap">
           <Text size="sm" fw={500} c={p.activo ? undefined : 'dimmed'}>
-            {p.nombre}
+            {p.nombreCompleto}
           </Text>
+          {p.rol === 'admin' && (
+            <BadgeEstado ayuda="Su cuenta ve y edita toda la administración.">
+              Admin
+            </BadgeEstado>
+          )}
           {p.esRevendedor && (
             <BadgeEstado ayuda="Se lleva mercadería para revender y paga el costo.">
               Revendedora
@@ -56,24 +78,24 @@ export function PersonasPage() {
       ),
     },
     {
-      clave: 'contacto',
-      titulo: 'Contacto',
-      ancho: 220,
-      orden: (p) => p.contacto,
+      clave: 'telefono',
+      titulo: 'Teléfono',
+      ancho: 180,
+      orden: (p) => p.telefono,
       render: (p) => (
-        <Text size="sm" c="dimmed">
-          {p.contacto ?? ''}
+        <Text size="sm" c="dimmed" className="tabular">
+          {p.telefono ?? ''}
         </Text>
       ),
     },
     {
       clave: 'cuenta',
-      titulo: 'Cuenta en la app',
+      titulo: 'Cuenta',
       ancho: 160,
-      orden: (p) => (p.tieneCuenta ? 1 : 0),
+      orden: (p) => (p.rol ? 1 : 0),
       render: (p) => (
         <Text size="sm" c="dimmed">
-          {p.tieneCuenta ? 'sí' : 'no'}
+          {p.rol ? ETIQUETA_ROL[p.rol] : 'sin cuenta'}
         </Text>
       ),
     },
@@ -91,22 +113,7 @@ export function PersonasPage() {
   return (
     <Pagina
       titulo="Personas"
-      descripcion="Clientes, revendedoras y productoras. Los dos roles se acumulan: el mismo estudiante puede hacer las dos cosas."
-      acciones={
-        <>
-          <Button
-            variant="default"
-            component={Link}
-            to="/admin/personas/invitaciones"
-            leftSection={<IconSend size={15} />}
-          >
-            Invitaciones
-          </Button>
-          <Button leftSection={<IconPlus size={15} />} onClick={() => setEditando(null)}>
-            Nueva persona
-          </Button>
-        </>
-      }
+      descripcion="Entran solas al registrarse. Acá se les da el rol: revendedora, productora o admin — los dos primeros se acumulan."
     >
       {personas.error && (
         <Alert color="error" variant="light" title="No se pudieron cargar">
@@ -119,43 +126,35 @@ export function PersonasPage() {
         idDe={(p) => p.id}
         columnas={columnas}
         cargando={personas.cargando}
-        textoBusqueda={(p) => `${p.nombre} ${p.contacto ?? ''} ${p.notas ?? ''}`}
+        textoBusqueda={(p) => `${p.nombreCompleto} ${p.telefono ?? ''} ${p.notas ?? ''}`}
         placeholderBusqueda="Buscar persona…  (/)"
         anchoMinimo={760}
         onFila={(p) => setEditando(p)}
         vacio={{
-          titulo: 'Todavía no hay personas',
+          titulo: 'Todavía no se registró nadie',
           descripcion:
-            'Cargá a quienes te compran, revenden o fabrican. No necesitan tener cuenta en la app.',
-          accion: (
-            <Button
-              leftSection={<IconPlus size={15} />}
-              onClick={() => setEditando(null)}
-            >
-              Cargar la primera
-            </Button>
-          ),
+            'El padrón se llena solo: cada persona que se crea la cuenta aparece acá, con su nombre y su teléfono. Pasales la dirección de la app.',
         }}
         acciones={(p) => (
           <Group gap={2} wrap="nowrap" justify="flex-end">
-            {/* Invitar es lo único que le falta a una persona sin cuenta, y es
-                el punto donde se nota que falta: acá está el padrón. */}
-            {!p.tieneCuenta && p.activo && (
-              <Tooltip label="Invitar a la app">
+            {/* El rol solo existe si hay cuenta: sin cuenta no hay nada que
+                permitir ni que prohibir. */}
+            {p.rol && (
+              <Tooltip label="Cambiar el rol de su cuenta">
                 <ActionIcon
                   variant="subtle"
                   color="gray"
-                  aria-label={`Invitar a ${p.nombre} a la app`}
-                  onClick={() => navigate(`/admin/personas/invitaciones?persona=${p.id}`)}
+                  aria-label={`Cambiar el rol de ${p.nombreCompleto}`}
+                  onClick={() => setRolDe(p)}
                 >
-                  <IconSend size={16} />
+                  <IconShieldCog size={16} />
                 </ActionIcon>
               </Tooltip>
             )}
             <ActionIcon
               variant="subtle"
               color="gray"
-              aria-label={`Editar ${p.nombre}`}
+              aria-label={`Editar ${p.nombreCompleto}`}
               onClick={() => setEditando(p)}
             >
               <IconEdit size={16} />
@@ -164,12 +163,24 @@ export function PersonasPage() {
         )}
       />
 
-      {editando !== undefined && (
+      {rolDe && (
+        <ModalRol
+          persona={rolDe}
+          esUnoMismo={rolDe.perfilId != null && rolDe.perfilId === perfil?.id}
+          onClose={() => setRolDe(null)}
+          onGuardado={() => {
+            setRolDe(null);
+            personas.recargar();
+          }}
+        />
+      )}
+
+      {editando && (
         <ModalPersona
           persona={editando}
-          onClose={() => setEditando(undefined)}
+          onClose={() => setEditando(null)}
           onGuardado={() => {
-            setEditando(undefined);
+            setEditando(null);
             personas.recargar();
           }}
         />
@@ -180,19 +191,24 @@ export function PersonasPage() {
 
 type Valores = {
   nombre: string;
-  contacto: string;
+  apellido: string;
+  telefono: string;
   notas: string;
   esRevendedor: boolean;
   esProductor: boolean;
   activo: boolean;
 };
 
+/**
+ * Editar una persona que ya existe. No hay alta: al padrón se entra
+ * registrándose, y la ficha nace con la cuenta.
+ */
 function ModalPersona({
   persona,
   onClose,
   onGuardado,
 }: {
-  persona: Persona | null;
+  persona: Persona;
   onClose: () => void;
   onGuardado: () => void;
 }) {
@@ -200,23 +216,15 @@ function ModalPersona({
   const [error, setError] = useState<string | null>(null);
 
   const f = useFormulario<Valores>(
-    persona
-      ? {
-          nombre: persona.nombre,
-          contacto: persona.contacto ?? '',
-          notas: persona.notas ?? '',
-          esRevendedor: persona.esRevendedor,
-          esProductor: persona.esProductor,
-          activo: persona.activo,
-        }
-      : {
-          nombre: '',
-          contacto: '',
-          notas: '',
-          esRevendedor: false,
-          esProductor: false,
-          activo: true,
-        },
+    {
+      nombre: persona.nombre,
+      apellido: persona.apellido ?? '',
+      telefono: persona.telefono ?? '',
+      notas: persona.notas ?? '',
+      esRevendedor: persona.esRevendedor,
+      esProductor: persona.esProductor,
+      activo: persona.activo,
+    },
     (v) => ({ nombre: v.nombre.trim() ? undefined : 'La persona necesita un nombre.' }),
   );
 
@@ -225,17 +233,15 @@ function ModalPersona({
     setGuardando(true);
     setError(null);
     try {
-      await guardarPersona(
-        {
-          nombre: f.valores.nombre.trim(),
-          contacto: f.valores.contacto.trim() || null,
-          notas: f.valores.notas.trim() || null,
-          es_revendedor: f.valores.esRevendedor,
-          es_productor: f.valores.esProductor,
-          activo: f.valores.activo,
-        },
-        persona?.id,
-      );
+      await actualizarPersona(persona.id, {
+        nombre: f.valores.nombre.trim(),
+        apellido: f.valores.apellido.trim() || null,
+        telefono: f.valores.telefono.trim() || null,
+        notas: f.valores.notas.trim() || null,
+        es_revendedor: f.valores.esRevendedor,
+        es_productor: f.valores.esProductor,
+        activo: f.valores.activo,
+      });
       onGuardado();
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
@@ -245,17 +251,17 @@ function ModalPersona({
   }
 
   return (
-    <Modal
-      opened
-      onClose={onClose}
-      title={persona ? `Editar ${persona.nombre}` : 'Nueva persona'}
-    >
+    <Modal opened onClose={onClose} title={`Editar ${persona.nombreCompleto}`}>
       <Stack gap="sm">
-        <TextInput label="Nombre" withAsterisk {...f.texto('nombre')} />
+        <Group gap="sm" grow align="flex-start">
+          <TextInput label="Nombre" withAsterisk {...f.texto('nombre')} />
+          <TextInput label="Apellido" {...f.texto('apellido')} />
+        </Group>
         <TextInput
-          label="Contacto"
-          placeholder="Teléfono, mail, Instagram…"
-          {...f.texto('contacto')}
+          label="Teléfono"
+          placeholder="11 5555 5555"
+          description="El que cargó al registrarse. Corregilo si está mal escrito."
+          {...f.texto('telefono')}
         />
 
         <Switch
@@ -281,10 +287,10 @@ function ModalPersona({
           onChange={(e) => f.set('activo', e.currentTarget.checked)}
         />
 
-        {persona?.tieneCuenta && (
+        {persona.rol && (
           <Text size="xs" c="dimmed">
-            Esta persona tiene cuenta en la app. El vínculo se arma con una invitación y
-            no se edita desde acá.
+            Su cuenta es {ETIQUETA_ROL[persona.rol].toLowerCase()}. El rol se cambia desde
+            la lista.
           </Text>
         )}
 
@@ -299,7 +305,95 @@ function ModalPersona({
             Cancelar
           </Button>
           <Button loading={guardando} onClick={() => void guardar()}>
-            {persona ? 'Guardar cambios' : 'Crear persona'}
+            Guardar cambios
+          </Button>
+        </Group>
+      </Stack>
+    </Modal>
+  );
+}
+
+/**
+ * Cambiar el rol de la cuenta de una persona.
+ *
+ * Un modal y no un switch en la fila: es el único cambio de esta pantalla que
+ * no es un dato de la ficha sino un permiso, y darse cuenta después de haberlo
+ * tocado sin querer es caro. La base igual rechaza dejar la app sin ningún
+ * admin; acá el aviso existe para que no haya que enterarse por un error.
+ */
+function ModalRol({
+  persona,
+  esUnoMismo,
+  onClose,
+  onGuardado,
+}: {
+  persona: Persona;
+  esUnoMismo: boolean;
+  onClose: () => void;
+  onGuardado: () => void;
+}) {
+  const [rol, setRol] = useState<Rol>(persona.rol ?? 'usuario');
+  const [guardando, setGuardando] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function guardar() {
+    setGuardando(true);
+    setError(null);
+    try {
+      await cambiarRol(persona.id, rol);
+      onGuardado();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setGuardando(false);
+    }
+  }
+
+  return (
+    <Modal opened onClose={onClose} title={`Rol de ${persona.nombreCompleto}`}>
+      <Stack gap="sm">
+        <Select
+          label="Rol de la cuenta"
+          data={[
+            {
+              value: 'usuario',
+              label: 'Usuario — ve su catálogo, su deuda y sus pedidos',
+            },
+            { value: 'admin', label: 'Admin — ve y edita toda la administración' },
+          ]}
+          value={rol}
+          onChange={(v) => setRol((v as Rol | null) ?? 'usuario')}
+          allowDeselect={false}
+          comboboxProps={{ withinPortal: true }}
+        />
+
+        <Text size="xs" c="dimmed">
+          Revendedora y productora no son esto: son atributos de la persona, se editan en
+          su ficha y valen aunque nunca se registre.
+        </Text>
+
+        {esUnoMismo && rol !== 'admin' && (
+          <Alert color="advertencia" variant="light" title="Es tu propia cuenta">
+            Si te sacás el rol de admin, esta pantalla deja de existir para vos.
+          </Alert>
+        )}
+
+        {error && (
+          <Alert color="error" variant="light" title="No se pudo cambiar">
+            {error}
+          </Alert>
+        )}
+
+        <Group justify="flex-end" gap="xs" mt="xs">
+          <Button variant="subtle" color="gray" onClick={onClose}>
+            Cancelar
+          </Button>
+          <Button
+            loading={guardando}
+            disabled={rol === persona.rol}
+            onClick={() => void guardar()}
+          >
+            Cambiar rol
           </Button>
         </Group>
       </Stack>

@@ -14,7 +14,6 @@ import { PersonasPage } from '@/features/deudores/PersonasPage';
 import { LoteNuevoPage } from '@/features/lotes/LoteNuevoPage';
 import { LotePage } from '@/features/lotes/LotePage';
 import { LotesPage } from '@/features/lotes/LotesPage';
-import { InvitacionesPage } from '@/features/invitaciones/InvitacionesPage';
 import { LineasPage } from '@/features/productos/LineasPage';
 import { ProductoFormPage } from '@/features/productos/ProductoFormPage';
 import { ProductoPage } from '@/features/productos/ProductoPage';
@@ -35,7 +34,6 @@ import { VentaPage } from '@/features/ventas/VentaPage';
 import { VentasPage } from '@/features/ventas/VentasPage';
 import { InicioPage as InicioAdminPage } from '@/features/inicio/InicioPage';
 import { InicioPage } from '@/pages/InicioPage';
-import { InvitacionPage } from '@/pages/InvitacionPage';
 import { LoginPage } from '@/pages/LoginPage';
 import { MateriaPrimaPage } from '@/pages/MateriaPrimaPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
@@ -43,7 +41,6 @@ import { ProductosPage } from '@/pages/ProductosPage';
 
 export const router = createBrowserRouter([
   { path: '/entrar', element: <LoginPage /> },
-  { path: '/invitacion/:token', element: <InvitacionPage /> },
   {
     element: <RutaProtegida />,
     children: [
@@ -102,7 +99,6 @@ export const router = createBrowserRouter([
           { path: 'deudores', element: <DeudoresPage /> },
           { path: 'deudores/:id', element: <DeudorPage /> },
           { path: 'personas', element: <PersonasPage /> },
-          { path: 'personas/invitaciones', element: <InvitacionesPage /> },
           { path: 'gastos', element: <GastosPage /> },
           { path: 'simulador', element: <SimuladorPage /> },
           { path: 'simulador/calculadora', element: <CalculadoraPage /> },

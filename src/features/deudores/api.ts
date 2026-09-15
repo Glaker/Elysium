@@ -1,3 +1,4 @@
+import type { Rol } from '@/app/authContext';
 import type { TipoVenta } from '@/features/ventas/api';
 import { supabase } from '@/lib/supabase';
 
@@ -7,40 +8,73 @@ function revisar<T>(datos: T | null, error: { message: string } | null): T {
 }
 
 /**
- * Con quién hace negocio Elysium. Puede no tener cuenta nunca: una deuda existe
- * aunque la persona no se registre (MODELO §Identidad).
+ * Con quién hace negocio Elysium.
  *
- * Los dos roles son acumulables y no excluyentes: el mismo estudiante puede
- * fabricar lotes y llevarse productos para revender. Ninguno de los dos en true
- * es simplemente un cliente.
+ * Al padrón se entra registrándose: la ficha nace con la cuenta y no se cargan
+ * personas a mano (MODELO §Identidad). Las que quedaron de antes pueden no tener
+ * cuenta, y por eso `rol` es opcional.
+ *
+ * Los dos roles de persona son acumulables y no excluyentes: el mismo estudiante
+ * puede fabricar lotes y llevarse productos para revender. Ninguno de los dos en
+ * true es simplemente un cliente.
  */
 export type Persona = {
   id: string;
+  /** De pila. Para mostrar se usa `nombreCompleto`, nunca este solo. */
   nombre: string;
-  contacto: string | null;
+  apellido: string | null;
+  nombreCompleto: string;
+  telefono: string | null;
   notas: string | null;
   esRevendedor: boolean;
   esProductor: boolean;
   activo: boolean;
-  /** Si tiene cuenta en la app. Se vincula por invitación, no desde acá. */
-  tieneCuenta: boolean;
+  /** La cuenta con la que se registró, si se registró. */
+  perfilId: string | null;
+  /**
+   * El rol de la cuenta, o `null` si esta persona todavía no se registró.
+   *
+   * Vive en `perfiles` y no acá porque es de la cuenta: revendedora y productora
+   * son atributos de la persona y valen aunque nunca se registre —una deuda no
+   * espera a que alguien se cree una cuenta—, mientras que admin/usuario es lo
+   * que lee el RLS y no existe sin cuenta.
+   */
+  rol: Rol | null;
 };
 
 export async function listarPersonas(): Promise<Persona[]> {
   const { data, error } = await supabase
     .from('personas')
-    .select('id, nombre, contacto, notas, es_revendedor, es_productor, activo, perfil_id')
-    .order('nombre');
+    .select(
+      'id, nombre, apellido, nombre_completo, telefono, notas, es_revendedor, es_productor, activo, perfil_id, perfiles (rol)',
+    )
+    .order('nombre_completo');
   if (error) throw new Error(error.message);
-  return data.map((p) => ({
+  const filas = data as unknown as {
+    id: string;
+    nombre: string;
+    apellido: string | null;
+    nombre_completo: string | null;
+    telefono: string | null;
+    notas: string | null;
+    es_revendedor: boolean;
+    es_productor: boolean;
+    activo: boolean;
+    perfil_id: string | null;
+    perfiles: { rol: Rol } | null;
+  }[];
+  return filas.map((p) => ({
     id: p.id,
     nombre: p.nombre,
-    contacto: p.contacto,
+    apellido: p.apellido,
+    nombreCompleto: p.nombre_completo ?? p.nombre,
+    telefono: p.telefono,
     notas: p.notas,
     esRevendedor: p.es_revendedor,
     esProductor: p.es_productor,
     activo: p.activo,
-    tieneCuenta: p.perfil_id != null,
+    perfilId: p.perfil_id,
+    rol: p.perfil_id ? (p.perfiles?.rol ?? 'usuario') : null,
   }));
 }
 
@@ -53,17 +87,38 @@ export async function obtenerPersona(id: string): Promise<Persona> {
 
 export type DatosPersona = {
   nombre: string;
-  contacto: string | null;
+  apellido: string | null;
+  telefono: string | null;
   notas: string | null;
   es_revendedor: boolean;
   es_productor: boolean;
   activo: boolean;
 };
 
-export async function guardarPersona(datos: DatosPersona, id?: string) {
-  const { error } = id
-    ? await supabase.from('personas').update(datos).eq('id', id)
-    : await supabase.from('personas').insert(datos);
+/**
+ * Corregir una ficha. **No hay alta**: una persona entra al padrón cuando se
+ * crea la cuenta, y la ficha la escribe el trigger `alta_de_cuenta()` con lo que
+ * cargó ella misma. Lo que se edita acá es lo que la base no puede saber sola
+ * —quién revende, quién fabrica— y los datos mal escritos.
+ */
+export async function actualizarPersona(id: string, datos: DatosPersona) {
+  const { error } = await supabase.from('personas').update(datos).eq('id', id);
+  if (error) throw new Error(error.message);
+}
+
+/**
+ * El rol de la cuenta de una persona.
+ *
+ * Pasa por una función de la base y no por un `update` a `perfiles` porque hay
+ * dos cosas que el cliente no puede garantizar: que la persona tenga cuenta, y
+ * que no quede la app sin ningún admin (incluido el caso de un admin bajándose
+ * a sí mismo, que es la forma más rápida de perder el acceso a todo).
+ */
+export async function cambiarRol(personaId: string, rol: Rol) {
+  const { error } = await supabase.rpc('cambiar_rol', {
+    p_persona_id: personaId,
+    p_rol: rol,
+  });
   if (error) throw new Error(error.message);
 }
 

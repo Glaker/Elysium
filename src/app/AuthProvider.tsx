@@ -27,7 +27,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       supabase.from('perfiles').select('id, nombre, rol').eq('id', uid).maybeSingle(),
       supabase
         .from('personas')
-        .select('id, nombre, es_revendedor, es_productor')
+        .select('id, nombre_completo, es_revendedor, es_productor')
         .eq('perfil_id', uid)
         .maybeSingle(),
     ]);
@@ -36,7 +36,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       per
         ? {
             id: per.id,
-            nombre: per.nombre,
+            nombre: per.nombre_completo ?? '',
             esRevendedor: per.es_revendedor,
             esProductor: per.es_productor,
           }

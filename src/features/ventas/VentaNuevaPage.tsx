@@ -93,7 +93,7 @@ export function VentaNuevaPage() {
 
   const opcionesPersona = (personas.datos ?? [])
     .filter((p) => p.activo)
-    .map((p) => ({ value: p.id, label: p.nombre }));
+    .map((p) => ({ value: p.id, label: p.nombreCompleto }));
 
   return (
     <Pagina

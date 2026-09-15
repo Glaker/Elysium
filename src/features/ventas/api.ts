@@ -91,7 +91,7 @@ export async function listarVentas(): Promise<Venta[]> {
     supabase
       .from('ventas')
       .select(
-        'id, tipo, fecha, estado, persona_id, a_nombre_de_persona_id, cuenta_id, forma_pago, ubicacion_id, notas, persona:personas!ventas_persona_id_fkey (nombre), aNombre:personas!ventas_a_nombre_de_persona_id_fkey (nombre), cuentas (nombre)',
+        'id, tipo, fecha, estado, persona_id, a_nombre_de_persona_id, cuenta_id, forma_pago, ubicacion_id, notas, persona:personas!ventas_persona_id_fkey (nombre_completo), aNombre:personas!ventas_a_nombre_de_persona_id_fkey (nombre_completo), cuentas (nombre)',
       )
       .order('fecha', { ascending: false })
       .order('creado_en', { ascending: false }),
@@ -110,8 +110,8 @@ export async function listarVentas(): Promise<Venta[]> {
     forma_pago: string | null;
     ubicacion_id: string | null;
     notas: string | null;
-    persona: { nombre: string } | null;
-    aNombre: { nombre: string } | null;
+    persona: { nombre_completo: string | null } | null;
+    aNombre: { nombre_completo: string | null } | null;
     cuentas: { nombre: string } | null;
   }[];
 
@@ -139,9 +139,9 @@ export async function listarVentas(): Promise<Venta[]> {
       fecha: f.fecha,
       estado: f.estado,
       personaId: f.persona_id,
-      persona: f.persona?.nombre ?? null,
+      persona: f.persona?.nombre_completo ?? null,
       aNombreDeId: f.a_nombre_de_persona_id,
-      aNombreDe: f.aNombre?.nombre ?? null,
+      aNombreDe: f.aNombre?.nombre_completo ?? null,
       cuentaId: f.cuenta_id,
       cuenta: f.cuentas?.nombre ?? null,
       formaPago: f.forma_pago,
